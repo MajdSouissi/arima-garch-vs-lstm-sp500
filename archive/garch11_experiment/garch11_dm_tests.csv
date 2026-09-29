@@ -1,0 +1,5 @@
+Task,Model_1,Model_2,Loss,DM_Stat,p_value,N,Conclusion
+Volatility,GARCH11_Const,LSTM_Vol,QLIKE,3.677,0.0002,906,LSTM_Vol significantly better (p=0.0002)
+Volatility,GARCH11_Const,LSTM_Vol,SE,0.5879,0.5566,906,No significant difference (p=0.5566)
+Return,GARCH11_Const,LSTM_Base,SE,0.1511,0.8799,906,No significant difference (p=0.8799)
+Return,GARCH11_Const,LSTM_Base,AE,-2.1787,0.0294,906,GARCH11_Const significantly better (p=0.0294)

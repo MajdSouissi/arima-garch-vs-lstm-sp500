@@ -1,0 +1,16 @@
+FORECASTING EVALUATION REPORT
+Evaluation period: 2023-01-03 to 2026-08-13
+Number of evaluation days: 906
+
+      Task       Model      RMSE       MAE  DirAcc(%)  MAPE(%)    QLIKE
+    Return GARCH_Const  0.933423  0.655058  56.181015      NaN      NaN
+    Return   GARCH_AR1  0.932899  0.656706  53.532009      NaN      NaN
+    Return   LSTM_Base  0.930757  0.661675  49.448124      NaN      NaN
+    Return    LSTM_Enh  0.936954  0.664322  48.344371      NaN      NaN
+     Price GARCH_Const 52.133885 36.445594        NaN 0.654995      NaN
+     Price   GARCH_AR1 52.089801 36.522037        NaN 0.656699      NaN
+     Price   LSTM_Base 51.985561 36.779028        NaN 0.661486      NaN
+     Price    LSTM_Enh 52.311438 36.928934        NaN 0.664143      NaN
+Volatility GARCH_Const  3.066211  0.946062        NaN      NaN 1.593644
+Volatility   GARCH_AR1  3.058170  0.942743        NaN      NaN 1.593838
+Volatility    LSTM_Vol  3.203975  1.004294        NaN      NaN 1.577264

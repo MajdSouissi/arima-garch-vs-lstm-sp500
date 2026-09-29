@@ -1,0 +1,11 @@
+Task,Model_1,Model_2,Loss,DM_Stat,p_value,Conclusion
+Return,GARCH_Const,LSTM_Base,SE,0.2144,0.8303,No significant difference (p=0.8303)
+Return,GARCH_Const,LSTM_Base,AE,-2.0087,0.0446,GARCH_Const significantly better (p=0.0446)
+Return,GARCH_AR1,LSTM_Enh,SE,-0.548,0.5837,No significant difference (p=0.5837)
+Return,GARCH_AR1,LSTM_Enh,AE,-2.5392,0.0111,GARCH_AR1 significantly better (p=0.0111)
+Return,GARCH_Const,GARCH_AR1,SE,0.1486,0.8819,No significant difference (p=0.8819)
+Return,LSTM_Base,LSTM_Enh,SE,-1.0631,0.2877,No significant difference (p=0.2877)
+Volatility,GARCH_Const,LSTM_Vol,QLIKE,0.7322,0.4641,No significant difference (p=0.4641)
+Volatility,GARCH_Const,LSTM_Vol,SE,-2.0313,0.0422,GARCH_Const significantly better (p=0.0422)
+Volatility,GARCH_AR1,LSTM_Vol,QLIKE,0.7305,0.4651,No significant difference (p=0.4651)
+Volatility,GARCH_AR1,LSTM_Vol,SE,-2.0693,0.0385,GARCH_AR1 significantly better (p=0.0385)

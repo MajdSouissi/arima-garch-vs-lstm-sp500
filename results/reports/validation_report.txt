@@ -1,0 +1,416 @@
+
+================================================================================
+  STEP 1 — LOAD AND INSPECT BOTH DATASETS
+================================================================================
+
+--- Dataset 1: S&P 500 Historical Data (CSV) ---
+Source file: c:\Users\LENOVO\Bureau\mastere\S&P 500 Historical Data.csv
+Number of rows: 5000
+Column names: ['Date', 'Price', 'Open', 'High', 'Low', 'Vol.', 'Change %']
+Data types:
+Date         object
+Price        object
+Open         object
+High         object
+Low          object
+Vol.        float64
+Change %     object
+
+First 5 rows:
+         Date     Price      Open      High       Low  Vol. Change %
+0  06/29/2020  3,053.20  3,018.60  3,053.90  2,999.70   NaN    1.47%
+1  06/26/2020  3,009.10  3,073.20  3,073.70  3,004.60   NaN   -2.42%
+2  06/25/2020  3,083.80  3,046.60  3,086.20  3,024.00   NaN    1.10%
+3  06/24/2020  3,050.30  3,114.40  3,115.00  3,032.10   NaN   -2.59%
+4  06/23/2020  3,131.30  3,138.70  3,154.90  3,127.10   NaN    0.43%
+
+Last 5 rows:
+            Date     Price      Open      High       Low  Vol. Change %
+4995  08/18/2000  1,491.70  1,496.10  1,499.50  1,488.90   NaN   -0.29%
+4996  08/17/2000  1,496.10  1,479.80  1,499.50  1,479.80   NaN    1.10%
+4997  08/16/2000  1,479.80  1,484.40  1,494.70  1,475.80   NaN   -0.31%
+4998  08/15/2000  1,484.40  1,491.60  1,493.00  1,482.80   NaN   -0.48%
+4999  08/14/2000  1,491.60  1,471.80  1,491.60  1,468.60   NaN    1.35%
+
+Missing values per column:
+Date           0
+Price          0
+Open           0
+High           0
+Low            0
+Vol.        5000
+Change %       0
+
+--- Dataset 2: FRED SP500 (Excel) ---
+Source file: c:\Users\LENOVO\Bureau\mastere\SP500.xlsx
+Number of rows: 2609
+Column names: ['observation_date', 'SP500']
+Data types:
+observation_date    datetime64[ns]
+SP500                      float64
+
+First 5 rows:
+  observation_date    SP500
+0       2016-08-15  2190.15
+1       2016-08-16  2178.15
+2       2016-08-17  2182.22
+3       2016-08-18  2187.02
+4       2016-08-19  2183.87
+
+Last 5 rows:
+     observation_date    SP500
+2604       2026-08-07  7757.64
+2605       2026-08-10  7753.11
+2606       2026-08-11  7728.20
+2607       2026-08-12  7748.50
+2608       2026-08-13  7798.99
+
+Missing values per column:
+observation_date     0
+SP500               96
+
+================================================================================
+  STEP 2 — STANDARDIZE FORMATS AND COLUMN NAMES
+================================================================================
+
+--- Standardizing Dataset 1 ---
+Date parsing: MM/DD/YYYY format detected and parsed.
+Date range: 2000-08-14 00:00:00 to 2020-06-29 00:00:00
+  Column 'Price': converted from object to numeric. New NaN from conversion: 0
+  Column 'Open': converted from object to numeric. New NaN from conversion: 0
+  Column 'High': converted from object to numeric. New NaN from conversion: 0
+  Column 'Low': converted from object to numeric. New NaN from conversion: 0
+  Volume: parsed with K/M/B suffix handling. Missing: 5000
+
+  DECISION: 'Change %' column is NOT used as the definitive return.
+  Reason: We will compute log returns from cleaned Close prices directly.
+
+  Dataset 1 sorted chronologically.
+  Final date range: 2000-08-14 to 2020-06-29
+  Unique dates: 5000
+  Duplicate dates: 0
+
+--- Standardizing Dataset 2 ---
+  Renamed: observation_date → Date, SP500 → Close_FRED
+  Date range: 2016-08-15 to 2026-08-13
+  Close_FRED converted to numeric. Missing values: 96
+  DECISION: Dropped 96 rows with missing Close_FRED values.
+  Reason: FRED marks non-trading days with '.', these are not real observations.
+  Unique dates: 2513
+  Duplicate dates: 0
+  Final date range: 2016-08-15 to 2026-08-13
+
+--- Descriptive Statistics ---
+
+Dataset 1 — Close_D1:
+count    5000.00000
+mean     1614.34320
+std       628.52695
+min       676.50000
+25%      1150.27500
+50%      1360.05000
+75%      2052.22500
+max      3386.20000
+
+Dataset 2 — Close_FRED:
+count    2513.000000
+mean     4084.040438
+std      1447.651998
+min      2085.180000
+25%      2818.370000
+50%      3936.690000
+75%      4975.510000
+max      7798.990000
+
+================================================================================
+  STEP 3 — VALIDATE THE OVERLAP PERIOD
+================================================================================
+Number of overlapping dates: 975
+Overlap period: 2016-08-15 to 2020-06-29
+
+--- Overlap Comparison Statistics ---
+Total overlapping dates:      975
+Exact matches (diff = 0):     94
+Within ±0.10:                 975
+Within ±1.00:                 975
+Max absolute difference:      0.0500
+Max relative difference (%):  0.002352%
+Mean absolute difference:     0.0258
+Mean relative difference (%): 0.000975%
+Median absolute difference:   0.0300
+Std absolute difference:      0.0148
+
+--- Distribution of Absolute Differences ---
+  =0 to 0.01: 64 (6.6%)
+  0.01 to 0.1: 817 (83.8%)
+  0.1 to 0.5: 0 (0.0%)
+  0.5 to 1.0: 0 (0.0%)
+  1.0 to 5.0: 0 (0.0%)
+  >5.0: 0 (0.0%)
+
+--- Top 10 Largest Discrepancies ---
+      Date  Close_D1  Close_FRED  Abs_Diff  Rel_Diff_Pct
+2017-01-04    2270.8     2270.75      0.05      0.002202
+2017-02-13    2328.2     2328.25      0.05      0.002148
+2017-02-15    2349.2     2349.25      0.05      0.002128
+2017-02-27    2369.8     2369.75      0.05      0.002110
+2017-03-17    2378.2     2378.25      0.05      0.002102
+2017-07-06    2409.8     2409.75      0.05      0.002075
+2017-07-12    2443.2     2443.25      0.05      0.002046
+2017-12-20    2679.2     2679.25      0.05      0.001866
+2018-01-25    2839.2     2839.25      0.05      0.001761
+2018-03-02    2691.2     2691.25      0.05      0.001858
+
+--- Sample of Matching Observations (diff < 0.01) ---
+      Date  Close_D1  Close_FRED  Abs_Diff
+2016-08-23    2186.9     2186.90      0.00
+2016-09-08    2181.3     2181.30      0.00
+2016-09-09    2127.8     2127.81      0.01
+2016-09-23    2164.7     2164.69      0.01
+2016-09-26    2146.1     2146.10      0.00
+2016-10-03    2161.2     2161.20      0.00
+2016-10-17    2126.5     2126.50      0.00
+2016-10-18    2139.6     2139.60      0.00
+2016-10-28    2126.4     2126.41      0.01
+2016-11-14    2164.2     2164.20      0.00
+
+--- Sample of Non-Matching Observations (diff >= 0.10) ---
+  No observations with absolute difference >= 0.10
+
+--- Discrepancy Investigation ---
+Observations within rounding threshold (±0.15): 975/975 (100.0%)
+Mean signed difference (D1 - FRED): -0.0008
+  → No systematic bias detected
+
+Dates in overlap range present ONLY in Dataset 1: 0
+Dates in overlap range present ONLY in Dataset 2 (FRED): 0
+
+--- Discrepancy Conclusion ---
+CONCLUSION: All differences are minor (< 1.0 index point).
+Most likely cause: rounding differences between data providers.
+The two datasets are COMPATIBLE for merging.
+
+Plot saved: c:\Users\LENOVO\Bureau\mastere\plots\step3_overlap_comparison.png
+
+================================================================================
+  STEP 4 — DEFINE THE MASTER PRICE SERIES
+================================================================================
+
+--- Merge Strategy ---
+Rule: Create a single 'Close' column using the following logic:
+  1. For dates BEFORE the FRED coverage start → use Dataset 1 (Close_D1)
+  2. For dates in the OVERLAP period → use FRED (Close_FRED)
+     Rationale: FRED is a more standardized, institutional source.
+     The differences are minor (rounding only), so this choice
+     does not materially affect the research.
+  3. For dates AFTER Dataset 1 ends → use FRED (Close_FRED)
+
+  This is a DOCUMENTED METHODOLOGICAL DECISION.
+
+  FRED coverage starts: 2016-08-15
+  Dataset 1 coverage ends: 2020-06-29
+
+  Part A (D1 only, before FRED): 4025 observations
+    Range: 2000-08-14 to 2016-08-12
+  Part B (FRED, from start onward): 2513 observations
+    Range: 2016-08-15 to 2026-08-13
+
+  No duplicate dates after merge — clean concatenation.
+
+  Master dataset: 6538 observations
+  Date range: 2000-08-14 to 2026-08-13
+
+  Source breakdown:
+    Investing.com: 4025 observations
+    FRED: 2513 observations
+
+================================================================================
+  STEP 5 — CHECK THE FINAL SERIES INTEGRITY
+================================================================================
+Chronologically ordered: True
+Duplicate dates: 0
+Missing Close values: 0
+Negative or zero prices: 0
+Date range: 2000-08-14 to 2026-08-13
+Total observations: 6538
+
+--- Gap Analysis (missing trading days) ---
+
+Day-difference distribution:
+  1 day(s): 5116 occurrences (consecutive trading day)
+  2 day(s): 65 occurrences (1 non-trading day, e.g., Sat)
+  3 day(s): 1180 occurrences (weekend gap)
+  4 day(s): 173 occurrences (3-day weekend / holiday)
+  5 day(s): 2 occurrences ← INVESTIGATE
+  7 day(s): 1 occurrences ← INVESTIGATE
+
+--- Gaps > 4 Calendar Days (potential holidays/closures) ---
+ Prev_Date       Date  Day_Diff  Close
+2001-09-10 2001-09-17       7.0 1038.8
+2006-12-29 2007-01-03       5.0 1416.6
+2012-10-26 2012-10-31       5.0 1412.2
+
+Note: Gaps of 4-5 days typically correspond to long weekends
+(e.g., Thanksgiving, Christmas, MLK Day, Presidents Day, etc.)
+These are LEGITIMATE non-trading gaps and should NOT be filled.
+
+--- Continuity at Dataset Join Point ---
+Last Investing.com observation: 2016-08-12 Close=2184.10
+First FRED observation:         2016-08-15 Close=2190.15
+Gap: 3 calendar day(s), price difference: 6.05 (0.28%)
+  Join point is smooth — no unusual discontinuity.
+
+Plot saved: c:\Users\LENOVO\Bureau\mastere\plots\step5_master_series.png
+
+================================================================================
+  STEP 6 — DERIVE LOG RETURNS
+================================================================================
+Formula: r_t = 100 * ln(Close_t / Close_{t-1})
+DECISION: Log returns computed from the clean Close series.
+  The original Close values are NOT modified.
+
+--- Log Return Statistics ---
+Missing values (from differencing): 1
+  (Expected: 1, the first observation)
+Number of valid log returns: 6537
+Mean:               0.025304
+Standard deviation:  1.208061
+Minimum:            -12.7652
+Maximum:            10.9644
+Skewness:           -0.3519
+Kurtosis (excess):  11.0425
+Median:             0.064205
+
+--- Top 10 Most Negative Returns ---
+      Date   Close  Log_Return
+2020-03-16 2386.13  -12.765214
+2020-03-12 2480.64   -9.994485
+2008-10-15  907.80   -9.472919
+2008-12-01  816.20   -9.350418
+2008-09-29 1106.40   -9.198513
+2008-10-09  909.90   -7.920541
+2020-03-09 2746.56   -7.901039
+2008-11-20  752.40   -6.955979
+2011-08-08 1119.50   -6.893927
+2008-11-19  806.60   -6.305745
+
+--- Top 10 Most Positive Returns ---
+      Date   Close  Log_Return
+2008-10-13 1003.40   10.964403
+2008-10-28  940.50   10.247025
+2025-04-09 5456.90    9.089490
+2020-03-24 2447.33    8.968316
+2020-03-13 2711.02    8.880836
+2009-03-23  822.90    6.839412
+2020-04-06 2663.68    6.796823
+2008-11-13  911.30    6.693357
+2008-11-24  851.80    6.274003
+2009-03-10  719.60    6.176305
+
+================================================================================
+  STEP 7 — BASIC FINANCIAL DATA SANITY CHECKS
+================================================================================
+
+--- 7a. Distribution Summary ---
+Jarque-Bera test (normality):
+  Test statistic: 33291.18
+  p-value: 0.00e+00
+  REJECT normality (expected for financial returns)
+
+Shapiro-Wilk test (on subsample of 5000):
+  Test statistic: 0.882778
+  p-value: 6.38e-52
+  REJECT normality
+Plot saved: c:\Users\LENOVO\Bureau\mastere\plots\step7a_distribution.png
+
+--- 7b. Autocorrelation Analysis ---
+ACF of returns (first 5 lags): ['-0.1019', '-0.0012', '0.0071', '-0.0300', '-0.0124']
+ACF of squared returns (first 5 lags): ['0.3154', '0.4264', '0.2608', '0.3105', '0.3154']
+ACF of |returns| (first 5 lags): ['0.2930', '0.3741', '0.3315', '0.3334', '0.3460']
+
+Significant ACF lags (returns): 12/40
+Significant ACF lags (squared returns): 40/40
+→ STRONG evidence of volatility clustering (typical for financial data)
+  This supports the use of GARCH-type models.
+Plot saved: c:\Users\LENOVO\Bureau\mastere\plots\step7b_acf_pacf.png
+
+--- 7c. Volatility Clustering ---
+Plot saved: c:\Users\LENOVO\Bureau\mastere\plots\step7c_volatility_clustering.png
+
+Visual inspection of absolute returns and rolling volatility
+should reveal periods of clustered high/low volatility:
+  - 2000–2003: Dot-com crash (high volatility)
+  - 2007–2009: Global Financial Crisis (very high volatility)
+  - 2020: COVID-19 crash (extreme volatility spike)
+  - 2022: Rate hike volatility
+
+--- 7d. Augmented Dickey-Fuller Test ---
+
+ADF test on CLOSE PRICES (levels):
+  Test statistic: 0.4840
+  p-value: 0.996821
+  Lags used: 20
+  Critical values: {'1%': -3.9601598212810396, '5%': -3.4111638971299505, '10%': -3.1274468394656942}
+  CANNOT reject H0 (non-stationary) — expected for prices
+
+ADF test on LOG RETURNS:
+  Test statistic: -20.1230
+  p-value: 0.000000
+  Lags used: 15
+  Critical values: {'1%': -3.4313532013514876, '5%': -2.8619833292790244, '10%': -2.567005980794687}
+  REJECT H0 (stationary) — expected for returns
+
+--- 7e. Ljung-Box Test ---
+
+Ljung-Box test on returns:
+       lb_stat     lb_pvalue
+10  101.813924  2.360858e-17
+20  165.480063  6.538137e-25
+40  199.628865  4.377247e-23
+
+Ljung-Box test on squared returns (ARCH effects):
+         lb_stat  lb_pvalue
+10   6111.381579        0.0
+20   8617.741812        0.0
+40  10573.354553        0.0
+
+→ Strong evidence of ARCH effects (volatility clustering)
+  This confirms the relevance of GARCH modeling for this data.
+
+================================================================================
+  STEP 8 — SAVE OUTPUTS
+================================================================================
+Master dataset saved: c:\Users\LENOVO\Bureau\mastere\SP500_master_2000_2026.csv
+  Rows: 6538
+  Columns: ['Date', 'Close', 'Log_Return', 'Source']
+
+================================================================================
+  VALIDATION REPORT SUMMARY
+================================================================================
+
+============================================================
+  FINAL SUMMARY
+============================================================
+
+1. Final date range:        2000-08-14 to 2026-08-13
+2. Number of observations:  6538
+3. Overlapping dates:       975
+4. Source agreement:        Mean abs diff = 0.0258, Max abs diff = 0.0500
+5. Discrepancies:           minor_rounding — differences attributable to rounding
+6. Merge rule:              Investing.com for pre-FRED period; FRED from 2016-08-15 onward (no overlap duplication)
+7. Missing Log_Return:      1 (first observation, expected)
+8. Dataset readiness:       READY for modeling
+
+Source breakdown:
+  Investing.com: 4025 observations
+  FRED: 2513 observations
+
+Key financial characteristics confirmed:
+  - Non-normal returns (heavy tails, excess kurtosis)
+  - Volatility clustering (ARCH effects)
+  - Stationary log returns (ADF test)
+  - Non-stationary price levels (ADF test)
+
+============================================================
+  Dataset is ready for ARIMA-GARCH and LSTM modeling.
+============================================================

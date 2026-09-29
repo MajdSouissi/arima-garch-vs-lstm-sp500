@@ -1,0 +1,21 @@
+Category,Test,Statistic,p-value,Detail,Conclusion (α=0.05)
+Stationarity,ADF — Close,0.4840,0.996821,Lags=20,FAIL TO REJECT H0 → non-stationary (expected for prices)
+Stationarity,KPSS — Close,2.5712,0.0100,Lags=51,REJECT H0 → non-stationary
+Stationarity,ADF — Log_Return,-20.1230,0.000000,Lags=15,REJECT H0 → stationary (expected for returns)
+Stationarity,KPSS — Log_Return,0.473892,0.0475,Lags=14,REJECT H0 → non-stationary (unexpected)
+Distribution,Skewness,-0.3519,—,N=6537,Negative skew → left tail heavier
+Distribution,Excess Kurtosis,11.0425,—,Normal = 0,Leptokurtic (heavy tails)
+Distribution,Jarque-Bera,33291.18,0.00e+00,,REJECT H0 → returns are NOT normally distributed
+Linear dependence,"Ljung-Box (returns, lag=5)",75.20,0.0000,,REJECT H0 → serial correlation
+Linear dependence,"Ljung-Box (returns, lag=10)",101.81,0.0000,,REJECT H0 → serial correlation
+Linear dependence,"Ljung-Box (returns, lag=20)",165.48,0.0000,,REJECT H0 → serial correlation
+Linear dependence,"Ljung-Box (returns, lag=40)",199.63,0.0000,,REJECT H0 → serial correlation
+Volatility dependence,"Ljung-Box (r², lag=5)",3566.62,0.00e+00,,REJECT H0 → volatility clustering
+Volatility dependence,"Ljung-Box (r², lag=10)",6111.38,0.00e+00,,REJECT H0 → volatility clustering
+Volatility dependence,"Ljung-Box (r², lag=20)",8617.74,0.00e+00,,REJECT H0 → volatility clustering
+Volatility dependence,"Ljung-Box (r², lag=40)",10573.35,0.00e+00,,REJECT H0 → volatility clustering
+ARCH effects,ARCH-LM (lag=1),650.00,2.24e-143,"F=721.55, p(F)=7.49e-151",REJECT H0 → ARCH effects
+ARCH effects,ARCH-LM (lag=5),1656.98,0.00e+00,"F=443.63, p(F)=0.00e+00",REJECT H0 → ARCH effects
+ARCH effects,ARCH-LM (lag=10),1767.21,0.00e+00,"F=241.93, p(F)=0.00e+00",REJECT H0 → ARCH effects
+ARCH effects,ARCH-LM (lag=20),1873.32,0.00e+00,"F=131.03, p(F)=0.00e+00",REJECT H0 → ARCH effects
+ARCH effects,ARCH-LM (lag=40),1945.29,0.00e+00,"F=68.98, p(F)=0.00e+00",REJECT H0 → ARCH effects

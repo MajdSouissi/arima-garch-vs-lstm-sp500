@@ -1,0 +1,252 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\title{Forecasting Daily S\&P 500 Returns and Volatility: An Empirical Comparison of GJR-GARCH and LSTM Networks}
+\author{Majd Souissi \\
+Department / University \\
+\texttt{majdsouissi625@gmail.com}}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Financial market forecasting is challenging due to the high-noise environment of daily asset returns and the complex, asymmetric structure of volatility clustering. This paper presents an empirical comparison between an econometric model and non-linear deep-learning architectures for one-step-ahead forecasting of the S\&P 500 index. Utilizing a daily dataset spanning 2000 to 2026, we evaluate an AR(1)-GJR-GARCH(1,1)-Student-t model against Long Short-Term Memory (LSTM) networks equipped with enhanced volatility proxy features. A chronological out-of-sample test of 906 observations reveals that the relative performance depends on the forecasting target and the chosen loss function. For return forecasting, there is no significant difference in squared-error accuracy, although the GARCH baseline exhibits significantly lower absolute error in the reported comparisons. For conditional volatility, the GARCH model significantly outperforms the LSTM under squared-error loss. Under the asymmetric QLIKE loss, the LSTM attains a lower QLIKE score, but the difference is not statistically significant. The results suggest that the ability of a parsimonious econometric volatility model to exploit persistent conditional variance dynamics remains competitive with flexible LSTM configurations at the daily frequency.
+\end{abstract}
+
+\textbf{Keywords:} Financial Forecasting, Volatility, GJR-GARCH, LSTM, S\&P 500, Diebold-Mariano
+
+\section{Introduction}
+Financial return forecasting sits at the intersection of econometrics, statistical learning, and financial theory. Daily asset returns are difficult to predict because the conditional mean is dominated by noise, reflecting the rapid assimilation of new information in largely efficient markets. In contrast, the conditional variance exhibits persistent dependence that can be modeled statistically, characterized by volatility clustering, leverage effects, and heavy-tailed distributions. 
+
+Historically, the modeling of conditional volatility has relied on the Autoregressive Conditional Heteroskedasticity (ARCH) family of models. These parametric approaches explicitly capture the stylized facts of financial returns by imposing a mathematical structure on the variance process. Recently, deep learning models, particularly Long Short-Term Memory (LSTM) networks, have been applied to time series tasks. The LSTM provides a flexible nonlinear mapping from recent sequential observations to future forecasts, avoiding the restrictive functional forms required by GARCH-type models. 
+
+This paper investigates the empirical trade-off between a structured econometric representation and a flexible nonlinear representation. We ask: To what extent can an LSTM-based deep-learning model improve one-step-ahead forecasting of S\&P 500 returns and volatility compared with a carefully specified GJR-GARCH model?
+
+We compare a parsimonious asymmetric volatility model and LSTM networks under a common one-step-ahead evaluation framework, considering both return and variance forecasting and evaluating predictive differences under squared-error and QLIKE losses. By evaluating the models strictly out-of-sample on identical test sets, we observe that predictive performance depends inherently on the mathematical formulation of the target and the chosen evaluation metric. 
+
+\section{Related Work}
+The challenge of forecasting time series spans decades, evolving from the linear models of \cite{box1970time} to the volatility models pioneered by \cite{engle1982autoregressive} and \cite{bollerslev1986generalized}. These foundational works established that while the conditional mean of financial returns is near-unpredictable \cite{fama1965behavior}, the conditional variance is highly autocorrelated. Recognizing that negative shocks increase volatility more than positive shocks of the same magnitude, \cite{glosten1993relation} introduced the GJR-GARCH model to capture this asymmetric leverage effect. Furthermore, empirical asset returns possess heavy tails that are poorly captured by Gaussian innovations, motivating the use of Student-t distributions \cite{cont2001empirical}.
+
+Simultaneously, the development of the LSTM network \cite{hochreiter1997long} provided a robust mechanism for learning temporal dependencies in sequential data. Rigorous econometric comparisons, such as the framework proposed by \cite{diebold1995comparing}, emphasize the necessity of formal statistical tests over simple point-estimate differences. Furthermore, \cite{patton2011volatility} and \cite{hansen2005forecast} demonstrate that volatility forecast evaluation must account for the use of imperfect realized proxies, observing that the QLIKE and Mean Squared Error (MSE) loss functions provide consistent rankings.
+
+Recent empirical literature continues to rigorously evaluate these paradigms. For instance, \cite{petrozziello2022deep} compares deep learning architectures against GARCH models for asset management, observing that LSTMs capture complex non-linear patterns but require careful tuning. \cite{cai2023forecasting} evaluates daily stock volatility using recurrent networks versus GARCH, concluding that neural networks can achieve superior point forecasts. Similarly, \cite{mualifah2024comparison} analyzes data volatility on the Indonesia Stock Exchange, finding that hybrid architectures provide competitive accuracy. Further exploring synergies, \cite{xu2024hybrid} proposes a hybrid LSTM-GARCH framework for financial market volatility risk prediction, while \cite{li2025stock} explores an ARIMA-GARCH-LSTM model to extract deep nonlinear relationships. These studies collectively suggest that while hybrid models are increasingly popular, the relative performance of standalone models depends heavily on the market and metric.
+
+The present study differs from the aforementioned works by evaluating one-step-ahead forecasts on a daily S\&P 500 dataset over a common chronological test period. We explicitly compare an AR(1)-GJR-GARCH(1,1)-Student-t model against distinct LSTM forecasting configurations for both return and volatility targets, conducting formal Diebold-Mariano comparisons across multiple loss functions.
+
+\section{Data and Methodology}
+
+\subsection{Data and Preprocessing}
+The empirical analysis utilizes the daily closing prices of the S\&P 500 index. Historical market data is merged with Federal Reserve Economic Data (FRED) to construct a continuous daily timeline. The overlapping period between the historical source and FRED was checked for consistency prior to constructing the final series. The dataset spans approximately 26 years, terminating on August 13, 2026. The data is partitioned chronologically to prevent look-ahead bias: a training set (2000--2018), a validation set (2019--2022), and an out-of-sample test set (2023-01-03 to 2026-08-13, yielding 906 evaluation observations). 
+
+\subsection{Financial Return Characteristics}
+We model the continuously compounded daily log return, $r_t$, defined as:
+\begin{equation}
+r_t = 100 \log\left(\frac{P_t}{P_{t-1}}\right)
+\end{equation}
+where $P_t$ is the closing price of the index at day $t$. The scaling factor of 100 is applied to stabilize numerical estimation in both the GARCH maximum likelihood procedures and the neural network gradients.
+
+\subsection{GJR-GARCH Model Selection}
+Exploratory analysis of the training data revealed pronounced volatility clustering and heavy-tailed distributions. Furthermore, the asymmetric behavior of the returns supported the inclusion of a leverage term. Consequently, we specify an AR(1) conditional mean model with a GJR-GARCH(1,1) conditional variance model and Student-t innovations. 
+
+The conditional mean is modeled as:
+\begin{equation}
+r_t = c + \phi r_{t-1} + \epsilon_t
+\end{equation}
+The residual $\epsilon_t$ is assumed to follow a process $\epsilon_t = \sigma_t z_t$. The conditional variance $\sigma_t^2$ is modeled using a GJR-GARCH(1,1) specification:
+\begin{equation}
+\sigma_t^2 = \omega + \alpha \epsilon_{t-1}^2 + \gamma I_{t-1} \epsilon_{t-1}^2 + \beta \sigma_{t-1}^2
+\end{equation}
+where $\omega > 0$, $\alpha \ge 0$, $\beta \ge 0$, and $I_{t-1}$ is an indicator function taking the value 1 if $\epsilon_{t-1} < 0$ and 0 otherwise. To account for excess kurtosis, the standardized residuals $z_t$ are assumed to follow a Student-t distribution with $\nu$ degrees of freedom. For comparison, a constant-mean baseline ($r_t = c + \epsilon_t$) is also estimated.
+
+The parameters are estimated jointly via maximum likelihood on the training set exclusively. The estimated parameters for the final AR(1)-GJR-GARCH(1,1)-Student-t specification are provided in Table~\ref{tab:garch_params}. The leverage coefficient $\gamma$ is positive and highly significant, confirming the asymmetric response of variance to negative returns. Furthermore, the estimated degrees of freedom ($\nu \approx 7.14$) indicate substantial tail thickness relative to a Gaussian innovation assumption.
+
+\begin{table}[H]
+\centering
+\caption{Parameter Estimates for AR(1)-GJR-GARCH(1,1)-Student-t}
+\label{tab:garch_params}
+\begin{tabular}{lrr}
+\toprule
+Parameter & Estimate & $p$-value \\
+\midrule
+$c$ (Constant) & $0.0438$ & $5.526 \times 10^{-5}$ \\
+$\phi$ (AR(1)) & $-0.0574$ & $3.487 \times 10^{-5}$ \\
+$\omega$ & $0.0139$ & $3.730 \times 10^{-6}$ \\
+$\alpha$ & $0.0000$ & $1.000$ \\
+$\gamma$ (Leverage) & $0.1839$ & $1.202 \times 10^{-15}$ \\
+$\beta$ & $0.8950$ & $< 0.001$ \\
+$\nu$ (Degrees of Freedom) & $7.1414$ & $1.499 \times 10^{-19}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LSTM Models}
+We implement three distinct LSTM forecasting configurations. A 60-trading-day lookback window provides a flexible nonlinear mapping from recent sequential observations to future forecasts. The basic equations of an LSTM cell govern the cell state $C_t$ and hidden state $h_t$ via interacting gates:
+\begin{align}
+    f_t &= \sigma_g(W_f x_t + U_f h_{t-1} + b_f) \\
+    i_t &= \sigma_g(W_i x_t + U_i h_{t-1} + b_i) \\
+    \tilde{C}_t &= \tanh(W_c x_t + U_c h_{t-1} + b_c) \\
+    C_t &= f_t \odot C_{t-1} + i_t \odot \tilde{C}_t \\
+    o_t &= \sigma_g(W_o x_t + U_o h_{t-1} + b_o) \\
+    h_t &= o_t \odot \tanh(C_t)
+\end{align}
+The final hidden state of the sequence is passed through a dense linear layer to produce the forecast. The three configurations are defined as follows:
+\begin{itemize}
+    \item \textbf{LSTM Base Return:} Targets $r_{t+1}$ using historical returns $r_{t-59:t}$.
+    \item \textbf{LSTM Enhanced Return:} Targets $r_{t+1}$ incorporating $r_t$, $r_t^2$, a 21-day rolling standard deviation, and a 21-day rolling mean absolute return. The 21-day rolling mean absolute return is mathematically defined as $\frac{1}{21} \sum_{i=0}^{20} |r_{t-i}|$.
+    \item \textbf{LSTM Volatility:} Targets the squared return proxy $r_{t+1}^2$ using the enhanced feature set. A Softplus activation function $f(x) = \ln(1 + e^x) + \epsilon$ is applied to the output layer to enforce a positive variance forecast, ensuring mathematical compatibility with the evaluation metrics.
+\end{itemize}
+
+\subsection{Experimental Protocol}
+The study employs a one-step-ahead forecasting protocol. Feature scalers (StandardScaler) are fitted exclusively on the training set. LSTMs are trained using the Adam optimizer and Mean Squared Error loss. To prevent overfitting, we utilize a parsimonious architecture and employ early stopping based on the validation set. Table~\ref{tab:lstm_config} summarizes the final parameters applied to all LSTM configurations.
+
+\begin{table}[H]
+\centering
+\caption{LSTM Configuration Summary}
+\label{tab:lstm_config}
+\begin{tabular}{ll}
+\toprule
+Parameter & Setting \\
+\midrule
+Lookback Window & 60 days \\
+LSTM Layers & 1 hidden layer \\
+Hidden Units & 32 \\
+Dropout & 0.2 \\
+Learning Rate & 0.001 \\
+Optimizer & Adam \\
+Batch Size & 64 \\
+Loss Function & Mean Squared Error (MSE) \\
+Early Stopping & Patience = 10 epochs \\
+Random Seed & 42 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation Metrics and Volatility Targets}
+Return forecasts are evaluated using Root Mean Squared Error (RMSE), Mean Absolute Error (MAE), and Directional Accuracy. 
+
+For volatility forecasting, it is essential to align the model outputs with the evaluation metric. The AR(1)-GJR-GARCH(1,1)-Student-t model forecasts the conditional variance $\sigma_{t+1}^2$. The LSTM Volatility configuration predicts $r_{t+1}^2$. Both models are evaluated against $r_{t+1}^2$, which serves as a noisy observable variance proxy. We compute RMSE, MAE, and the Quasi-Likelihood (QLIKE) loss. QLIKE provides consistent rankings of volatility models even when using imperfect realized proxies.
+
+\subsection{Diebold-Mariano Test}
+To determine statistical significance between forecasts, we employ the Diebold-Mariano (DM) test \cite{diebold1995comparing}. Let $L(\cdot)$ denote the loss function. The loss differential between Model 1 and Model 2 is:
+\begin{equation}
+d_t = L(e_{1,t}) - L(e_{2,t})
+\end{equation}
+The null hypothesis is $H_0: E[d_t] = 0$. The test statistic is calculated as $DM = \bar{d} / \sqrt{\hat{\gamma}_0 / n}$, where $\bar{d}$ is the sample mean of the loss differential and $\hat{\gamma}_0$ is the sample variance. Since the forecasts are non-overlapping at $h=1$, the implemented Newey-West truncation uses $h-1=0$. The usual forecast-error regularity conditions still apply. A negative, statistically significant DM statistic implies that Model 1 provides a lower expected loss. The DM comparisons are reported at the nominal 5\% significance level; no multiple-comparison adjustment was applied.
+
+\section{Results}
+
+\subsection{Return Forecasting}
+Table~\ref{tab:returns} presents the evaluation of the conditional mean models over the 906-day test period. The numerical differences in RMSE across all four models are marginal. However, as shown in Table~\ref{tab:dm}, the Diebold-Mariano test indicates that while there is no significant difference under Squared Error (SE), the GARCH models achieve significantly lower Absolute Error (AE) compared to their respective LSTM counterparts ($p=0.0446$ for Const vs Base, and $p=0.0111$ for AR(1) vs Enhanced).
+
+\begin{table}[H]
+\centering
+\caption{Out-of-Sample Return Forecasting Performance}
+\label{tab:returns}
+\begin{tabular}{lrrr}
+\toprule
+Model & RMSE & MAE & Directional Accuracy (\%) \\
+\midrule
+GARCH Const & 0.9334 & 0.6551 & 56.18 \\
+AR(1)-GJR-GARCH(1,1)-Student-t & 0.9329 & 0.6567 & 53.53 \\
+LSTM Base Return & 0.9308 & 0.6617 & 49.45 \\
+LSTM Enhanced Return & 0.9370 & 0.6643 & 48.34 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Volatility Forecasting}
+Evaluating conditional variance yields distinct model behaviors (Table~\ref{tab:volatility}). Under the RMSE metric (which corresponds to squared-error loss on variance), both GARCH models exhibit lower errors than the LSTM Volatility configuration. The DM tests confirm that this difference is statistically significant ($p < 0.05$). Under the QLIKE loss function, the LSTM Volatility configuration achieves a numerically lower score (1.5773 versus 1.5936). However, the DM test reveals that this numerical difference is not statistically significant ($p \approx 0.46$).
+
+\begin{table}[H]
+\centering
+\caption{Out-of-Sample Volatility Forecasting Performance}
+\label{tab:volatility}
+\begin{tabular}{lrrr}
+\toprule
+Model & RMSE & MAE & QLIKE \\
+\midrule
+GARCH Const & 3.0662 & 0.9461 & 1.5936 \\
+AR(1)-GJR-GARCH(1,1)-Student-t & 3.0582 & 0.9427 & 1.5938 \\
+LSTM Volatility & 3.2040 & 1.0043 & 1.5773 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Diebold-Mariano Test Results (Significance Level $\alpha=0.05$)}
+\label{tab:dm}
+\begin{tabular}{lllrrl}
+\toprule
+Task & Model 1 & Model 2 & Loss & $p$-value & Conclusion \\
+\midrule
+Return & GARCH Const & LSTM Base Return & SE & 0.8303 & No significant difference \\
+Return & GARCH Const & LSTM Base Return & AE & 0.0446 & GARCH Const better \\
+Return & AR(1)-GARCH & LSTM Enhanced Return & SE & 0.5837 & No significant difference \\
+Return & AR(1)-GARCH & LSTM Enhanced Return & AE & 0.0111 & AR(1)-GARCH better \\
+\midrule
+Volatility & GARCH Const & LSTM Volatility & QLIKE & 0.4641 & No significant difference \\
+Volatility & GARCH Const & LSTM Volatility & SE & 0.0422 & GARCH Const better \\
+Volatility & AR(1)-GARCH & LSTM Volatility & QLIKE & 0.4651 & No significant difference \\
+Volatility & AR(1)-GARCH & LSTM Volatility & SE & 0.0385 & AR(1)-GARCH better \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Error Behavior and Visualizations}
+Figure~\ref{fig:errors} illustrates the forecast errors over time. Both models experience spikes during market shocks. Figure~\ref{fig:volatility} plots the conditional volatility $\hat{\sigma}_t$ of the GARCH model and the predicted volatility proxy $\sqrt{\hat{r}_t^2}$ of the LSTM against the absolute return $|r_t|$. The GARCH model produces a smoother, more persistent volatility curve characteristic of its autoregressive decay structure, whereas the LSTM output exhibits higher-frequency oscillation tracking the recent squared returns. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../final_results_plots/fig4_forecast_errors.png}
+    \caption{One-step-ahead return forecast errors over the out-of-sample period.}
+    \label{fig:errors}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../final_results_plots/fig3_actual_vs_pred_volatility.png}
+    \caption{Out-of-sample volatility predictions. The parametric GARCH model yields smoother structural persistence, while the LSTM tracks localized volatility spikes.}
+    \label{fig:volatility}
+\end{figure}
+
+\subsection{Performance During Volatile Periods}
+Analysis of a 21-day rolling mean squared error (Figure~\ref{fig:rolling}) reveals that both models exhibit higher errors during periods of sudden market stress. Higher forecast errors are visually concentrated around periods of elevated market volatility. Unexpected shocks occurring during the forecasted trading day cannot be anticipated from information available at the previous close.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../final_results_plots/fig6_high_vol_performance.png}
+    \caption{Rolling Mean Squared Error mapped against market volatility (computed via rolling 21-day standard deviation).}
+    \label{fig:rolling}
+\end{figure}
+
+\section{Discussion}
+The empirical results underline the difficulty of forecasting financial returns. The lack of statistical significance in Squared Error differentials for returns suggests that the additional architectural complexity of the LSTM did not translate into a statistically significant improvement in daily return forecasting accuracy in this experiment.
+
+For volatility forecasting, the AR(1)-GJR-GARCH(1,1)-Student-t model exploits the known stylized facts of financial returns: it enforces mean-reversion, captures asymmetric leverage via its indicator function, and parameterizes exponential decay. The LSTM, tasked with discovering these dynamics from a 60-day window, does not achieve comparable forecasting accuracy under squared-error loss in this experiment. 
+
+However, we observe that the evaluation is sensitive to the loss function. Under QLIKE, the LSTM is statistically indistinguishable from the GARCH benchmarks in this experiment. While the LSTM attains a numerically lower QLIKE score, this non-significance indicates that neither approach demonstrates a clear statistical advantage under this asymmetric loss profile for the evaluated dataset.
+
+\section{Limitations}
+This study is constrained by several methodological choices. The analysis is limited to a single broad market index at a daily frequency. The forecasting horizon is fixed at one step ahead. The evaluation relies on a noisy squared daily return as the realized variance proxy. Finally, the comparative conclusions may also depend on the specific feature set and LSTM configuration adopted here.
+
+\section{Conclusion}
+For this S\&P 500 dataset evaluated at a daily frequency for one-step-ahead forecasting, the LSTM does not provide statistically significant predictive improvement over the econometric baseline. The AR(1)-GJR-GARCH(1,1)-Student-t model exhibits an advantage under absolute-error return evaluation and squared-error volatility evaluation, while the two approaches are statistically indistinguishable under QLIKE. The evidence indicates that carefully specified statistical models remain a competitive baseline in financial econometrics. 
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

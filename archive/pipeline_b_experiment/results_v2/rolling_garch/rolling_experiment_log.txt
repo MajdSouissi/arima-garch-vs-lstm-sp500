@@ -1,0 +1,46 @@
+Rolling GARCH Experiment started at 2026-09-10 12:48:51.218632
+Loading data...
+Number of test dates: 906
+Starting rolling estimation with W = 2000...
+Completed 100 / 906
+Completed 200 / 906
+Completed 300 / 906
+Completed 400 / 906
+Completed 500 / 906
+Completed 600 / 906
+Completed 700 / 906
+Completed 800 / 906
+Completed 900 / 906
+Rolling estimation finished. Successful fits: 906, Failures: 0
+
+--- Metrics ---
+                Model      RMSE       MAE     QLIKE
+0    Fixed GARCH(1,1)  3.246498  1.022975  1.661636
+1  Rolling GARCH(1,1)  3.229352  1.032826  1.662531
+2            LSTM_Vol  3.203975  1.004294  1.577264
+
+--- DM Tests ---
+                     Comparison   Loss   DM_Stat   p_value       Conclusion
+0  Fixed GARCH vs Rolling GARCH  QLIKE -0.083151  0.933731      No sig diff
+1     Rolling GARCH vs LSTM_Vol  QLIKE  3.689446  0.000225  LSTM_Vol better
+2  Fixed GARCH vs Rolling GARCH     SE  0.268653  0.788197      No sig diff
+3     Rolling GARCH vs LSTM_Vol     SE  0.423581  0.671871      No sig diff
+
+--- Parameter Summary ---
+            omega       alpha        beta  persistence          nu
+count  906.000000  906.000000  906.000000   906.000000  906.000000
+mean     0.021702    0.168800    0.826826     0.995626    6.020427
+std      0.006709    0.009393    0.007936     0.007199    0.260591
+min      0.013326    0.151204    0.809222     0.980204    5.500352
+25%      0.017190    0.160345    0.821247     0.992275    5.771646
+50%      0.018635    0.166486    0.824638     1.000000    6.017670
+75%      0.025260    0.176968    0.831829     1.000000    6.240740
+max      0.036850    0.190778    0.848796     1.000000    6.522126
+
+--- Stress Window (2025-04-09 to 2025-05-08) [n=21] ---
+           Model  Mean_QLIKE
+0    Fixed GARCH    2.140015
+1  Rolling GARCH    1.872532
+2       LSTM_Vol    2.108777
+Copying results to masters results only folder...
+Done.

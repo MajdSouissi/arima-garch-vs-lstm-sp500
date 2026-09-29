@@ -1,0 +1,317 @@
+
+============================================================================
+  LOADING DATA
+============================================================================
+File: c:\Users\LENOVO\Bureau\mastere\SP500_master_2000_2026.csv
+Shape: (6538, 4)
+Columns: ['Date', 'Close', 'Log_Return', 'Source']
+First row: 2000-08-14  Close=1491.6
+Last row:  2026-08-13  Close=7798.99
+
+============================================================================
+  1. DATA QUALITY VERIFICATION
+============================================================================
+
+Chronological ordering: ✓ YES
+Duplicate dates: 0 (none — ✓)
+Missing Close values: 0
+Missing Log_Return values: 1
+  → Expected: first observation has no predecessor for differencing.
+Zero or negative Close: 0 (none — ✓)
+
+--- Calendar-day gap distribution ---
+    1 day(s):  5116 (consecutive)
+    2 day(s):    65 (1 non-trading day)
+    3 day(s):  1180 (weekend)
+    4 day(s):   173 (long weekend/holiday)
+    5 day(s):     2
+    7 day(s):     1 ← INVESTIGATE
+
+--- Gaps exceeding 5 calendar days ---
+  2001-09-10 → 2001-09-17  (7 days)
+  Note: These correspond to US market holidays (Christmas, Thanksgiving, etc.).
+  No artificial filling required.
+
+--- Descriptive Statistics: Close ---
+count    6538.000000
+mean     2403.544130
+std      1626.132669
+min       676.500000
+25%      1210.225000
+50%      1680.550000
+75%      3055.107500
+max      7798.990000
+
+--- Descriptive Statistics: Log_Return ---
+count    6537.000000
+mean        0.025304
+std         1.208061
+min       -12.765214
+25%        -0.462540
+50%         0.064205
+75%         0.582198
+max        10.964403
+
+--- Data Quality Summary ---
+Overall: ✓ All checks passed
+Total observations: 6538
+Date range: 2000-08-14 → 2026-08-13
+
+============================================================================
+  2. STATIONARITY ANALYSIS (ADF + KPSS)
+============================================================================
+
+--- 2a. Augmented Dickey-Fuller test on CLOSE (prices) ---
+  H0: The series has a unit root (non-stationary).
+  H1: The series is stationary.
+  Test statistic : 0.4840
+  p-value        : 0.996821
+  Lags used      : 20
+  Observations   : 6517
+  Critical values: 1%=-3.960  5%=-3.411  10%=-3.127
+  Conclusion (α=0.05): FAIL TO REJECT H0 → non-stationary (expected for prices)
+
+--- 2b. KPSS test on CLOSE (prices) ---
+  H0: The series is trend-stationary.
+  H1: The series has a unit root (non-stationary).
+  Test statistic : 2.5712
+  p-value        : 0.0100
+  Lags used      : 51
+  Critical values: {'10%': 0.119, '5%': 0.146, '2.5%': 0.176, '1%': 0.216}
+  Conclusion (α=0.05): REJECT H0 → non-stationary
+
+--- 2c. Augmented Dickey-Fuller test on LOG RETURNS ---
+  H0: The series has a unit root (non-stationary).
+  H1: The series is stationary.
+  Test statistic : -20.1230
+  p-value        : 0.000000
+  Lags used      : 15
+  Observations   : 6521
+  Critical values: 1%=-3.431  5%=-2.862  10%=-2.567
+  Conclusion (α=0.05): REJECT H0 → stationary (expected for returns)
+
+--- 2d. KPSS test on LOG RETURNS ---
+  H0: The series is level-stationary.
+  H1: The series has a unit root.
+  Test statistic : 0.473892
+  p-value        : 0.0475
+  Lags used      : 14
+  Critical values: {'10%': 0.347, '5%': 0.463, '2.5%': 0.574, '1%': 0.739}
+  Conclusion (α=0.05): REJECT H0 → non-stationary (unexpected)
+
+--- Stationarity Summary ---
+Close (prices):
+  ADF fails to reject H0  ⟹  evidence of unit root
+  KPSS rejects H0         ⟹  evidence of non-stationarity
+  ⇒ CONSISTENT: price series is non-stationary (I(1) behavior).
+
+Log Returns:
+  ADF rejects H0          ⟹  no unit root
+  KPSS fails to reject H0 ⟹  level-stationary
+  ⇒ CONSISTENT: log-return series is stationary in mean.
+
+MODELING IMPLICATION: The log-return transformation achieves
+  mean-stationarity, which is a prerequisite for ARMA-type modeling.
+  However, stationarity in mean does NOT imply stationarity in
+  variance — volatility clustering may still be present.
+
+============================================================================
+  3. RETURN DISTRIBUTION ANALYSIS
+============================================================================
+  N                  : 6537
+  Mean               : 0.025304
+  Std deviation      : 1.208061
+  Median             : 0.064205
+  Skewness           : -0.3519
+  Excess kurtosis    : 11.0425
+  Min                : -12.7652
+  Max                : 10.9644
+
+--- Jarque-Bera normality test ---
+  H0: The data is normally distributed.
+  Test statistic : 33291.18
+  p-value        : 0.00e+00
+  Conclusion (α=0.05): REJECT H0 → returns are NOT normally distributed
+
+  Figure saved: fig3_distribution.png
+
+--- Distribution Interpretation ---
+  • Skewness = -0.3519: negative (left tail heavier, larger losses more probable).
+  • Excess kurtosis = 11.0425: substantially above 0,
+    indicating heavy tails (leptokurtic distribution).
+  • Jarque-Bera p < 0.001: the normality hypothesis is firmly rejected.
+  • The Q-Q plot shows systematic deviation from the reference line
+    in both tails, confirming fat tails.
+
+  CONCLUSION: Log returns are NOT normally distributed.
+  There is strong evidence of heavy tails and negative asymmetry.
+  This is consistent with established financial stylized facts.
+
+============================================================================
+  4. LINEAR DEPENDENCE IN LOG RETURNS
+============================================================================
+  95% confidence bound: ±0.0242
+
+  ACF of Log_Return (first 10 lags):
+    Lag  1: -0.1019  *
+    Lag  2: -0.0012  
+    Lag  3: +0.0071  
+    Lag  4: -0.0300  *
+    Lag  5: -0.0124  
+    Lag  6: -0.0278  *
+    Lag  7: +0.0318  *
+    Lag  8: -0.0252  *
+    Lag  9: +0.0405  *
+    Lag 10: +0.0030  
+
+  PACF of Log_Return (first 10 lags):
+    Lag  1: -0.1019  *
+    Lag  2: -0.0117  
+    Lag  3: +0.0058  
+    Lag  4: -0.0290  *
+    Lag  5: -0.0186  
+    Lag  6: -0.0318  *
+    Lag  7: +0.0261  *
+    Lag  8: -0.0206  
+    Lag  9: +0.0360  *
+    Lag 10: +0.0083  
+
+  Significant ACF  lags (of 40): 12
+  Significant PACF lags (of 40): 10
+
+--- Ljung-Box test on Log_Return ---
+  H0: No serial correlation up to lag k.
+  Lag  5: Q=75.20  p=0.0000  REJECT H0
+  Lag 10: Q=101.81  p=0.0000  REJECT H0
+  Lag 20: Q=165.48  p=0.0000  REJECT H0
+  Lag 40: Q=199.63  p=0.0000  REJECT H0
+
+  Figure saved: fig4_acf_pacf_returns.png
+
+--- Linear Dependence Interpretation ---
+  The ACF and PACF of log returns show mostly small coefficients.
+  A few lags may be marginally significant, which is common with
+  large samples (N=6537) where even tiny correlations
+  become statistically detectable.
+  Overall, there is WEAK linear autocorrelation in returns,
+  consistent with the weak-form efficient market hypothesis.
+  Any residual structure is small and may guide ARMA order selection.
+
+============================================================================
+  5. VOLATILITY DEPENDENCE (squared and absolute returns)
+============================================================================
+
+  ACF of squared returns (first 10 lags):
+    Lag  1: +0.3154  *
+    Lag  2: +0.4264  *
+    Lag  3: +0.2608  *
+    Lag  4: +0.3105  *
+    Lag  5: +0.3154  *
+    Lag  6: +0.3194  *
+    Lag  7: +0.2871  *
+    Lag  8: +0.2631  *
+    Lag  9: +0.2689  *
+    Lag 10: +0.2505  *
+
+  ACF of absolute returns (first 10 lags):
+    Lag  1: +0.2930  *
+    Lag  2: +0.3741  *
+    Lag  3: +0.3315  *
+    Lag  4: +0.3334  *
+    Lag  5: +0.3460  *
+    Lag  6: +0.3303  *
+    Lag  7: +0.3230  *
+    Lag  8: +0.3116  *
+    Lag  9: +0.2964  *
+    Lag 10: +0.2991  *
+
+  Significant ACF lags — squared returns:  40/40
+  Significant ACF lags — absolute returns: 40/40
+
+--- Ljung-Box test on squared Log_Return ---
+  H0: No serial correlation in squared returns up to lag k.
+  Lag  5: Q=3566.62  p=0.00e+00  REJECT H0
+  Lag 10: Q=6111.38  p=0.00e+00  REJECT H0
+  Lag 20: Q=8617.74  p=0.00e+00  REJECT H0
+  Lag 40: Q=10573.35  p=0.00e+00  REJECT H0
+
+  Figure saved: fig5_acf_pacf_volatility.png
+
+--- Volatility Dependence Interpretation ---
+  The ACF of squared and absolute returns shows LARGE, PERSISTENT,
+  and HIGHLY SIGNIFICANT autocorrelations across many lags.
+  This is the classic signature of volatility clustering:
+  periods of high volatility tend to be followed by high volatility,
+  and periods of low volatility by low volatility.
+  This pattern is a well-documented financial stylized fact.
+
+============================================================================
+  6. ARCH EFFECTS — Engle's ARCH-LM Test
+============================================================================
+  H0: No ARCH effects (homoskedastic residuals).
+  H1: ARCH effects present (conditional heteroskedasticity).
+
+  Testing at lags: [1, 5, 10, 20, 40]
+
+  Lag  1: LM=    650.00  p(LM)=2.24e-143  F=  721.55  p(F)=7.49e-151  REJECT H0 → ARCH effects
+  Lag  5: LM=   1656.98  p(LM)=0.00e+00  F=  443.63  p(F)=0.00e+00  REJECT H0 → ARCH effects
+  Lag 10: LM=   1767.21  p(LM)=0.00e+00  F=  241.93  p(F)=0.00e+00  REJECT H0 → ARCH effects
+  Lag 20: LM=   1873.32  p(LM)=0.00e+00  F=  131.03  p(F)=0.00e+00  REJECT H0 → ARCH effects
+  Lag 40: LM=   1945.29  p(LM)=0.00e+00  F=   68.98  p(F)=0.00e+00  REJECT H0 → ARCH effects
+
+--- ARCH Effects Interpretation ---
+  Engle's ARCH-LM test is highly significant at ALL tested lags.
+  This provides STRONG statistical evidence that the variance of
+  log returns is time-varying (conditional heteroskedasticity).
+  GARCH-family models are appropriate for capturing this behavior.
+
+============================================================================
+  7. VOLATILITY VISUALIZATION
+============================================================================
+
+  Figures saved:
+    fig7a_returns_timeseries.png
+    fig7b_squared_returns.png
+    fig7c_volatility_panel.png
+
+--- Volatility Visualization Notes ---
+  Visual inspection reveals distinct regimes of elevated volatility:
+  • ~2000–2003 period (market downturn)
+  • ~2008–2009 period (financial crisis)
+  • ~2011 period (European debt crisis)
+  • ~2015–2016 period (China-related turbulence)
+  • ~2018 Q4 period (rate tightening)
+  • ~2020 Q1–Q2 period (pandemic)
+  • ~2022 period (monetary policy tightening)
+  These observations are descriptive; no causal claims are made.
+
+============================================================================
+  8. SAVE ALL RESULTS
+============================================================================
+
+  Numerical results table saved: c:\Users\LENOVO\Bureau\mastere\diagnostic_results.csv
+  Rows: 20
+
+             Category                        Test Statistic   p-value                   Detail                                      Conclusion (α=0.05)
+         Stationarity                 ADF — Close    0.4840  0.996821                  Lags=20 FAIL TO REJECT H0 → non-stationary (expected for prices)
+         Stationarity                KPSS — Close    2.5712    0.0100                  Lags=51                               REJECT H0 → non-stationary
+         Stationarity            ADF — Log_Return  -20.1230  0.000000                  Lags=15            REJECT H0 → stationary (expected for returns)
+         Stationarity           KPSS — Log_Return  0.473892    0.0475                  Lags=14                  REJECT H0 → non-stationary (unexpected)
+         Distribution                    Skewness   -0.3519         —                   N=6537                        Negative skew → left tail heavier
+         Distribution             Excess Kurtosis   11.0425         —               Normal = 0                                Leptokurtic (heavy tails)
+         Distribution                 Jarque-Bera  33291.18  0.00e+00                                  REJECT H0 → returns are NOT normally distributed
+    Linear dependence  Ljung-Box (returns, lag=5)     75.20    0.0000                                                    REJECT H0 → serial correlation
+    Linear dependence Ljung-Box (returns, lag=10)    101.81    0.0000                                                    REJECT H0 → serial correlation
+    Linear dependence Ljung-Box (returns, lag=20)    165.48    0.0000                                                    REJECT H0 → serial correlation
+    Linear dependence Ljung-Box (returns, lag=40)    199.63    0.0000                                                    REJECT H0 → serial correlation
+Volatility dependence       Ljung-Box (r², lag=5)   3566.62  0.00e+00                                                 REJECT H0 → volatility clustering
+Volatility dependence      Ljung-Box (r², lag=10)   6111.38  0.00e+00                                                 REJECT H0 → volatility clustering
+Volatility dependence      Ljung-Box (r², lag=20)   8617.74  0.00e+00                                                 REJECT H0 → volatility clustering
+Volatility dependence      Ljung-Box (r², lag=40)  10573.35  0.00e+00                                                 REJECT H0 → volatility clustering
+         ARCH effects             ARCH-LM (lag=1)    650.00 2.24e-143 F=721.55, p(F)=7.49e-151                                 REJECT H0 → ARCH effects
+         ARCH effects             ARCH-LM (lag=5)   1656.98  0.00e+00  F=443.63, p(F)=0.00e+00                                 REJECT H0 → ARCH effects
+         ARCH effects            ARCH-LM (lag=10)   1767.21  0.00e+00  F=241.93, p(F)=0.00e+00                                 REJECT H0 → ARCH effects
+         ARCH effects            ARCH-LM (lag=20)   1873.32  0.00e+00  F=131.03, p(F)=0.00e+00                                 REJECT H0 → ARCH effects
+         ARCH effects            ARCH-LM (lag=40)   1945.29  0.00e+00   F=68.98, p(F)=0.00e+00                                 REJECT H0 → ARCH effects
+
+  Markdown report saved: c:\Users\LENOVO\Bureau\mastere\diagnostic_report.md

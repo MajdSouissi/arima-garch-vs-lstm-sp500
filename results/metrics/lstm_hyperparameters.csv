@@ -1,0 +1,4 @@
+Model,Target,Features,Lookback,LSTM_Units,Dropout,Learning_Rate,Batch_Size,Max_Epochs,Epochs_Trained,Best_Val_Loss,Framework,Optimizer,Loss_Function,Seed
+LSTM_M1_Base,Return,Log_Return,60,32,0.2,0.001,64,100,58,2.024653434753418,PyTorch,Adam,MSE,42
+LSTM_M2_Enhanced,Return,Log_Return + r^2 + RolVol21 + RolMAE21,60,32,0.2,0.001,64,100,22,2.075511932373047,PyTorch,Adam,MSE,42
+LSTM_M3_Volatility,r^2 (volatility proxy),Log_Return + r^2 + RolVol21 + RolMAE21,60,32,0.2,0.001,64,100,23,54.17295837402344,PyTorch,Adam,MSE,42

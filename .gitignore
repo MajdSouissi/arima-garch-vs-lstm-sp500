@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+desktop.ini
+
+# Temporary and local cache
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Note: Results, plots, and models are currently committed as part of the canonical publication.
+# Raw dataset (S&P 500 Historical Data.csv) is public data (FRED/Investing.com).
+
+# Private Thesis Chapters
+chapitre*.tex
+
+# Exclude Ox Alpha Chatbot project
+Ox Alpha/
+

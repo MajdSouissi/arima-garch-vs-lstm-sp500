@@ -1,0 +1,133 @@
+Experiment started at 2026-09-07 11:03:11.267322
+================================================================================
+1. DATA LOADING & SPLITTING
+================================================================================
+Total Observations: 6537
+Train: 2000-08-15 -> 2018-12-31 (4623 obs)
+Val:   2019-01-02 -> 2022-12-30 (1008 obs)
+Test:  2023-01-03 -> 2026-08-13 (906 obs)
+
+================================================================================
+2. ARIMA ORDER SELECTION (TRAINING ONLY)
+================================================================================
+Grid Search (p, 0, q) by BIC:
+  ARIMA(0,0,0) - BIC: 14804.19 | AIC: 14791.31
+  ARIMA(0,0,1) - BIC: 14781.84 | AIC: 14762.52
+  ARIMA(0,0,2) - BIC: 14779.37 | AIC: 14753.62
+  ARIMA(0,0,3) - BIC: 14785.99 | AIC: 14753.79
+  ARIMA(1,0,0) - BIC: 14785.05 | AIC: 14765.74
+  ARIMA(1,0,1) - BIC: 14782.01 | AIC: 14756.26
+  ARIMA(1,0,2) - BIC: 14785.93 | AIC: 14753.73
+  ARIMA(1,0,3) - BIC: 14794.04 | AIC: 14755.41
+  ARIMA(2,0,0) - BIC: 14778.30 | AIC: 14752.54
+  ARIMA(2,0,1) - BIC: 14785.06 | AIC: 14752.87
+  ARIMA(2,0,2) - BIC: 14791.91 | AIC: 14753.27
+  ARIMA(2,0,3) - BIC: 14801.29 | AIC: 14756.22
+  ARIMA(3,0,0) - BIC: 14785.01 | AIC: 14752.82
+  ARIMA(3,0,1) - BIC: 14793.26 | AIC: 14754.62
+  ARIMA(3,0,2) - BIC: 14784.26 | AIC: 14739.19
+  ARIMA(3,0,3) - BIC: 14787.85 | AIC: 14736.34
+
+> Selected Order by BIC: ARIMA(2, 0, 0) (BIC = 14778.30)
+                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                      y   No. Observations:                 4623
+Model:                 ARIMA(2, 0, 0)   Log Likelihood               -7372.272
+Date:                Mon, 07 Sep 2026   AIC                          14752.543
+Time:                        11:03:24   BIC                          14778.298
+Sample:                             0   HQIC                         14761.606
+                               - 4623                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.0112      0.016      0.698      0.485      -0.020       0.043
+ar.L1         -0.0815      0.009     -9.468      0.000      -0.098      -0.065
+ar.L2         -0.0573      0.007     -8.329      0.000      -0.071      -0.044
+sigma2         1.4212      0.014    102.935      0.000       1.394       1.448
+===================================================================================
+Ljung-Box (L1) (Q):                   0.01   Jarque-Bera (JB):             13483.07
+Prob(Q):                              0.94   Prob(JB):                         0.00
+Heteroskedasticity (H):               0.54   Skew:                            -0.35
+Prob(H) (two-sided):                  0.00   Kurtosis:                        11.34
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).
+
+Ljung-Box on ARIMA residuals:
+      lb_stat  lb_pvalue
+10  20.056533   0.028722
+ARCH-LM on ARIMA residuals: p-value = 1.4872e-271
+
+================================================================================
+3. GARCH ESTIMATION (TRAIN ONLY)
+================================================================================
+Fitting symmetric GARCH(1,1) + Student-t on ARIMA residuals...
+                          Zero Mean - GARCH Model Results                           
+====================================================================================
+Dep. Variable:                         None   R-squared:                       0.000
+Mean Model:                       Zero Mean   Adj. R-squared:                  0.000
+Vol Model:                            GARCH   Log-Likelihood:               -6168.53
+Distribution:      Standardized Student's t   AIC:                           12345.1
+Method:                  Maximum Likelihood   BIC:                           12370.8
+                                              No. Observations:                 4623
+Date:                      Mon, Sep 07 2026   Df Residuals:                     4623
+Time:                              11:03:24   Df Model:                            0
+                              Volatility Model                              
+============================================================================
+                 coef    std err          t      P>|t|      95.0% Conf. Int.
+----------------------------------------------------------------------------
+omega      9.4503e-03  2.965e-03      3.187  1.438e-03 [3.638e-03,1.526e-02]
+alpha[1]       0.1015  1.206e-02      8.413  3.995e-17   [7.782e-02,  0.125]
+beta[1]        0.8971  1.181e-02     75.970      0.000     [  0.874,  0.920]
+                              Distribution                              
+========================================================================
+                 coef    std err          t      P>|t|  95.0% Conf. Int.
+------------------------------------------------------------------------
+nu             6.5602      0.663      9.894  4.418e-23 [  5.261,  7.860]
+========================================================================
+
+Covariance estimator: robust
+
+GARCH Persistence (alpha + beta): 0.998598
+
+================================================================================
+4. FIXED-PARAMETER OOS FORECASTS
+================================================================================
+Generated full ARIMA-GARCH forecasts.
+
+================================================================================
+5. LSTM PREPARATION & TRAINING
+================================================================================
+Training LSTM_Return (Target: Return | Features: Base)...
+  LSTM_Return Early Stop at epoch 58. Best Val Loss: 2.024653
+Training LSTM_Vol (Target: Volatility | Features: Enhanced)...
+  LSTM_Vol Early Stop at epoch 23. Best Val Loss: 54.172958
+
+================================================================================
+6. EVALUATION METRICS (TEST SET)
+================================================================================
+Test period: 2023-01-03 to 2026-08-13 (906 obs)
+Returns  - ARIMA-GARCH : RMSE=0.9387, MAE=0.6655, DirAcc=48.12%
+Returns  - LSTM_Return : RMSE=0.9308, MAE=0.6617, DirAcc=49.45%
+Vol      - GARCH(1,1)  : RMSE=3.2465, MAE=1.0230, QLIKE=1.6616
+Vol      - LSTM_Vol    : RMSE=3.2040, MAE=1.0043, QLIKE=1.5773
+
+================================================================================
+7. DIEBOLD-MARIANO TESTS
+================================================================================
+Return DM (SE): DM=+0.7443, p=0.4567 -> No sig diff
+Return DM (AE): DM=+1.2250, p=0.2206 -> No sig diff
+Vol DM (QLIKE): DM=+4.2561, p=0.0000 -> LSTM_Vol better
+Vol DM (SE): DM=+0.5362, p=0.5919 -> No sig diff
+
+================================================================================
+8. STRESS ANALYSIS & FIGURES
+================================================================================
+
+--- Crisis Window (2025-04-09 to 2025-05-08) ---
+GARCH Mean QLIKE: 2.1400
+LSTM  Mean QLIKE: 2.1088
+
+Experiment Complete. Check results_v2 directory.

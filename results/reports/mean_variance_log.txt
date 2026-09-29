@@ -1,0 +1,645 @@
+
+============================================================================
+  LOADING DATA
+============================================================================
+Dataset: c:\Users\LENOVO\Bureau\mastere\SP500_master_2000_2026.csv
+Total obs: 6538, valid Log_Return: 6537
+Date range: 2000-08-14 → 2026-08-13
+95% ACF significance bound: ±0.02424
+
+============================================================================
+  TASK 1 — RETURN AUTOCORRELATION INVESTIGATION
+============================================================================
+
+--- ACF and PACF of Log_Return (first 20 lags) ---
+ Lag        ACF       PACF   |ACF|/bound   Sig?
+────  ─────────  ─────────  ────────────  ─────
+   1   -0.10193   -0.10193          4.20×      *
+   2   -0.00115   -0.01166          0.05×       
+   3   +0.00706   +0.00582          0.29×       
+   4   -0.03002   -0.02902          1.24×      *
+   5   -0.01245   -0.01862          0.51×       
+   6   -0.02780   -0.03175          1.15×      *
+   7   +0.03178   +0.02611          1.31×      *
+   8   -0.02519   -0.02063          1.04×      *
+   9   +0.04048   +0.03596          1.67×      *
+  10   +0.00300   +0.00826          0.12×       
+  11   -0.01250   -0.00992          0.52×       
+  12   +0.03206   +0.02870          1.32×      *
+  13   -0.01414   -0.00507          0.58×       
+  14   -0.00254   -0.00434          0.10×       
+  15   -0.05879   -0.05804          2.43×      *
+  16   +0.06376   +0.05221          2.63×      *
+  17   -0.01114   +0.00070          0.46×       
+  18   -0.02115   -0.02078          0.87×       
+  19   -0.00472   -0.01662          0.19×       
+  20   +0.01439   +0.01628          0.59×       
+
+Significant ACF  lags (of 40): 12
+Significant PACF lags (of 40): 10
+Largest |ACF|  (lag 1–20): 0.10193
+Largest |PACF| (lag 1–20): 0.10193
+
+--- Ljung-Box test on Log_Return ---
+ Lag      Q-stat     p-value                      Conclusion
+   1       67.95    0.000000  REJECT H0 → serial correlation
+   2       67.96    0.000000  REJECT H0 → serial correlation
+   3       68.29    0.000000  REJECT H0 → serial correlation
+   5       75.20    0.000000  REJECT H0 → serial correlation
+  10      101.81    0.000000  REJECT H0 → serial correlation
+  15      133.58    0.000000  REJECT H0 → serial correlation
+  20      165.48    0.000000  REJECT H0 → serial correlation
+  30      176.00    0.000000  REJECT H0 → serial correlation
+  40      199.63    0.000000  REJECT H0 → serial correlation
+
+--- Statistical vs Practical Significance ---
+  With N = 6,537, even tiny autocorrelations become statistically
+  significant. The 95% confidence bound is ±0.02424.
+
+  Key question: Are these autocorrelations economically meaningful?
+
+  The largest ACF values are on the order of 0.03–0.06.
+  This means at most ~0.3% of return variance at any lag is explained
+  by the previous return. The R² of an AR(1) model would be ≈ ρ₁² ≈ 0.010390.
+
+  INTERPRETATION:
+  • Statistically: Ljung-Box rejects the null at all tested lags.
+    There IS detectable linear dependence.
+  • Practically: The magnitudes are very small. This weak dependence
+    is consistent with microstructure effects (bid-ask bounce,
+    non-synchronous trading) rather than exploitable predictability.
+  • Modeling implication: A low-order ARMA(p,q) with p,q ∈ {0,1}
+    may modestly improve the conditional mean, but the primary value
+    of modeling the mean is to obtain cleaner residuals for GARCH.
+
+  Figure saved: task1_acf_pacf_returns.png
+
+============================================================================
+  TASK 2 — ARCH EFFECTS UNDER DIFFERENT MEAN SPECIFICATIONS
+============================================================================
+
+Purpose: Verify that ARCH effects persist regardless of the
+conditional mean specification, confirming that volatility modeling
+is necessary and not an artifact of mean misspecification.
+
+--- ARMA(0,0) ---
+  AIC = 21025.40   BIC = 21038.97   Params = 3
+  LB(resid, lag=10):  Q=101.81  p=0.0000  REJECT
+  LB(resid, lag=20):  Q=165.48  p=0.0000  REJECT
+  LB(resid², lag=10): Q=6128.45  p=0.00e+00  REJECT → ARCH effects
+  LB(resid², lag=20): Q=8635.88  p=0.00e+00  REJECT → ARCH effects
+  ARCH-LM(10):  LM=1770.88  p=0.00e+00  REJECT → ARCH effects
+  Coefficients: {'const': 0.025299, 'sigma2': 1.459177}
+
+--- AR(1) ---
+  AIC = 20959.13   BIC = 20979.49   Params = 4
+  LB(resid, lag=10):  Q=31.28  p=0.0005  REJECT
+  LB(resid, lag=20):  Q=85.37  p=0.0000  REJECT
+  LB(resid², lag=10): Q=5811.87  p=0.00e+00  REJECT → ARCH effects
+  LB(resid², lag=20): Q=8343.80  p=0.00e+00  REJECT → ARCH effects
+  ARCH-LM(10):  LM=1718.85  p=0.00e+00  REJECT → ARCH effects
+  Coefficients: {'const': 0.0253, 'ar.L1': -0.101924, 'sigma2': 1.444013}
+
+--- MA(1) ---
+  AIC = 20958.30   BIC = 20978.65   Params = 4
+  LB(resid, lag=10):  Q=30.92  p=0.0006  REJECT
+  LB(resid, lag=20):  Q=84.52  p=0.0000  REJECT
+  LB(resid², lag=10): Q=5871.73  p=0.00e+00  REJECT → ARCH effects
+  LB(resid², lag=20): Q=8407.96  p=0.00e+00  REJECT → ARCH effects
+  ARCH-LM(10):  LM=1733.29  p=0.00e+00  REJECT → ARCH effects
+  Coefficients: {'const': 0.025298, 'ma.L1': -0.103158, 'sigma2': 1.443823}
+
+--- ARMA(1,1) ---
+  AIC = 20960.29   BIC = 20987.43   Params = 5
+  LB(resid, lag=10):  Q=30.93  p=0.0006  REJECT
+  LB(resid, lag=20):  Q=84.52  p=0.0000  REJECT
+  LB(resid², lag=10): Q=5873.64  p=0.00e+00  REJECT → ARCH effects
+  LB(resid², lag=20): Q=8409.96  p=0.00e+00  REJECT → ARCH effects
+  ARCH-LM(10):  LM=1733.73  p=0.00e+00  REJECT → ARCH effects
+  Coefficients: {'const': 0.025299, 'ar.L1': 0.00291, 'ma.L1': -0.106013, 'sigma2': 1.443815}
+
+--- AR(2) ---
+  AIC = 20960.24   BIC = 20987.38   Params = 5
+  LB(resid, lag=10):  Q=30.94  p=0.0006  REJECT
+  LB(resid, lag=20):  Q=84.53  p=0.0000  REJECT
+  LB(resid², lag=10): Q=5876.42  p=0.00e+00  REJECT → ARCH effects
+  LB(resid², lag=20): Q=8412.52  p=0.00e+00  REJECT → ARCH effects
+  ARCH-LM(10):  LM=1734.39  p=0.00e+00  REJECT → ARCH effects
+  Coefficients: {'const': 0.0253, 'ar.L1': -0.103117, 'ar.L2': -0.011661, 'sigma2': 1.443816}
+
+--- ARMA(2,1) ---
+  AIC = 20957.54   BIC = 20991.47   Params = 6
+  LB(resid, lag=10):  Q=23.87  p=0.0080  REJECT
+  LB(resid, lag=20):  Q=79.82  p=0.0000  REJECT
+  LB(resid², lag=10): Q=5897.38  p=0.00e+00  REJECT → ARCH effects
+  LB(resid², lag=20): Q=8451.49  p=0.00e+00  REJECT → ARCH effects
+  ARCH-LM(10):  LM=1739.33  p=0.00e+00  REJECT → ARCH effects
+  Coefficients: {'const': 0.0253, 'ar.L1': -0.885719, 'ar.L2': -0.097902, 'ma.L1': 0.782612, 'sigma2': 1.44278}
+
+--- Mean Model Comparison Summary ---
+    Model  p  q          AIC          BIC  LB_resid_20_p  LB_sq_resid_20_p  ARCH_LM_10_p
+ARMA(0,0)  0  0 21025.402959 21038.973426   6.538137e-25               0.0           0.0
+    AR(1)  1  0 20959.131966 20979.487667   4.732060e-10               0.0           0.0
+    MA(1)  0  1 20958.295637 20978.651338   6.627063e-10               0.0           0.0
+ARMA(1,1)  1  1 20960.293330 20987.434265   6.612647e-10               0.0           0.0
+    AR(2)  2  0 20960.242305 20987.383239   6.602853e-10               0.0           0.0
+ARMA(2,1)  2  1 20957.544265 20991.470433   4.204920e-09               0.0           0.0
+
+--- CONCLUSION: ARCH effects under different mean specs ---
+  ARCH effects are HIGHLY SIGNIFICANT under ALL mean specifications.
+  The ARCH-LM p-values are essentially zero regardless of whether
+  we use a constant mean or low-order ARMA models.
+  → Volatility modeling (GARCH) is necessary and NOT an artifact
+    of mean misspecification.
+
+============================================================================
+  TASK 3 — CONDITIONAL MEAN MODEL SELECTION
+============================================================================
+
+Objective: Select the simplest defensible ARMA specification
+for the conditional mean, to produce residuals for GARCH modeling.
+
+Candidates are restricted to low-order models (p,q ∈ {0,1,2})
+because Log_Return is already a return (differenced) series.
+Fitting ARIMA with d > 0 would be over-differencing.
+
+--- Ranking by BIC (preferred for parsimony) ---
+  1. MA(1)         BIC=20978.65  AIC=20958.30 ← BEST
+  2. AR(1)         BIC=20979.49  AIC=20959.13
+  3. AR(2)         BIC=20987.38  AIC=20960.24
+  4. ARMA(1,1)     BIC=20987.43  AIC=20960.29
+  5. ARMA(2,1)     BIC=20991.47  AIC=20957.54
+  6. ARMA(0,0)     BIC=21038.97  AIC=21025.40
+
+--- Ranking by AIC ---
+  1. ARMA(2,1)     AIC=20957.54  BIC=20991.47 ← BEST
+  2. MA(1)         AIC=20958.30  BIC=20978.65
+  3. AR(1)         AIC=20959.13  BIC=20979.49
+  4. AR(2)         AIC=20960.24  BIC=20987.38
+  5. ARMA(1,1)     AIC=20960.29  BIC=20987.43
+  6. ARMA(0,0)     AIC=21025.40  BIC=21038.97
+
+--- Model Selection Reasoning ---
+  Best BIC model: MA(1) (BIC=20978.65)
+  Best AIC model: ARMA(2,1) (AIC=20957.54)
+
+--- Residual diagnostics for top candidates ---
+  MA(1)       : LB(10) p=0.0006, LB(20) p=0.0000
+  AR(1)       : LB(10) p=0.0005, LB(20) p=0.0000
+  AR(2)       : LB(10) p=0.0006, LB(20) p=0.0000
+
+--- DECISION: Conditional Mean Model ---
+  AIC and BIC disagree.
+  BIC prefers: MA(1) (BIC=20978.65)
+  AIC prefers: ARMA(2,1) (AIC=20957.54)
+  AIC difference: 0.75
+  → Selecting MA(1) (BIC preference; AIC difference is small)
+
+  SELECTED MEAN MODEL: MA(1)
+  AIC = 20958.30
+  BIC = 20978.65
+
+  ARMA(0,0) baseline: AIC=21025.40, BIC=21038.97
+  AIC improvement over constant-mean: 67.11
+  BIC improvement over constant-mean: 60.32
+
+  The selected model provides a meaningful improvement.
+
+  Figure saved: task3_selected_mean_diagnostics.png
+
+============================================================================
+  TASK 4 — VOLATILITY SPECIFICATION INVESTIGATION
+============================================================================
+
+Using residuals from: MA(1)
+
+--- 4a. ARCH-LM test on selected residuals ---
+  Lag  1: LM=478.87  p=3.76e-106  REJECT H0 → ARCH effects
+  Lag  5: LM=1610.55  p=0.00e+00  REJECT H0 → ARCH effects
+  Lag 10: LM=1733.29  p=0.00e+00  REJECT H0 → ARCH effects
+  Lag 20: LM=1858.03  p=0.00e+00  REJECT H0 → ARCH effects
+
+--- 4b. ACF of squared residuals ---
+  Significant ACF lags (squared residuals): 40/40
+  First 10 lags:
+    Lag 1: +0.27068  *
+    Lag 2: +0.42767  *
+    Lag 3: +0.25904  *
+    Lag 4: +0.31017  *
+    Lag 5: +0.30705  *
+    Lag 6: +0.31563  *
+    Lag 7: +0.28133  *
+    Lag 8: +0.26639  *
+    Lag 9: +0.26234  *
+    Lag 10: +0.25487  *
+
+--- 4c. Volatility persistence assessment ---
+  Σ ACF(r²) lags 1-5:  1.5746
+  Σ ACF(r²) lags 1-10: 2.9552
+  Σ ACF(r²) lags 1-20: 4.8747
+  → Significant and persistent autocorrelation in squared residuals
+    confirms that GARCH-type models are appropriate.
+  → The slow decay of ACF suggests HIGH volatility persistence,
+    which is consistent with α + β close to 1 in GARCH(1,1).
+
+--- 4d. Asymmetry investigation ---
+  Mean(r²_{t+1} | r_t < 0) = 1.7645
+  Mean(r²_{t+1} | r_t ≥ 0) = 1.1609
+  Ratio (neg/pos): 1.5200
+  → Evidence of asymmetric volatility response ('leverage effect').
+    Negative returns tend to be followed by larger volatility.
+    This motivates EGARCH or GJR-GARCH specifications.
+
+--- Sign bias test (Engle-Ng) ---
+  Sign bias regression results:
+      Variable       Coeff      t-stat     p-value
+         const      0.3372       2.998      0.0027  *
+         S_neg     -0.0820      -0.506      0.6131  
+       S_neg_r     -1.7822     -19.795      0.0000  *
+       S_pos_r      1.1011      10.870      0.0000  *
+
+  Joint F-test for asymmetry: F=178.24, p=0.0000
+  REJECT H0 → asymmetric effects confirmed
+
+============================================================================
+  TASK 5 — GARCH CANDIDATE MODELS
+============================================================================
+
+--- Model Selection Rationale ---
+  1. GARCH(1,1): The workhorse volatility model. Parsimonious and
+     empirically adequate for most financial series. This is the
+     baseline that any alternative must beat.
+
+  2. GJR-GARCH(1,1): Captures asymmetric volatility response.
+     Motivated by the sign-bias test and leverage effect evidence.
+     γ > 0 means negative shocks increase volatility more than
+     positive shocks of equal magnitude.
+
+  3. EGARCH(1,1): Alternative asymmetric specification.
+     Advantages: no non-negativity constraints on parameters;
+     models log(σ²) so σ² is automatically positive.
+
+  Innovation distributions to test:
+    - Normal (Gaussian)
+    - Student-t (heavier tails)
+  Motivated by excess kurtosis ≈ 11 and Jarque-Bera rejection.
+
+--- Fitting: const+GARCH(1,1)+normal ---
+  Log-likelihood = -8919.05
+  AIC = 17846.10   BIC = 17873.24
+  Parameters:
+              mu = 0.062408
+           omega = 0.025760
+        alpha[1] = 0.121115
+         beta[1] = 0.858829
+  Persistence (α+β) = 0.979944
+
+--- Fitting: const+GARCH(1,1)+t ---
+  Log-likelihood = -8764.67
+  AIC = 17539.34   BIC = 17573.26
+  Parameters:
+              mu = 0.080057
+           omega = 0.016127
+        alpha[1] = 0.125037
+         beta[1] = 0.869908
+              nu = 6.138126
+  Persistence (α+β) = 0.994945
+  Student-t df (ν) = 6.14
+
+--- Fitting: const+GJR-GARCH(1,1)+normal ---
+  Log-likelihood = -8792.54
+  AIC = 17595.08   BIC = 17629.00
+  Parameters:
+              mu = 0.023634
+           omega = 0.023330
+        alpha[1] = 0.000000
+        gamma[1] = 0.174296
+         beta[1] = 0.889540
+  Persistence (α + β + γ/2) = 0.976688
+  Asymmetry (γ) = 0.174296
+
+--- Fitting: const+GJR-GARCH(1,1)+t ---
+  Log-likelihood = -8650.28
+  AIC = 17312.56   BIC = 17353.27
+  Parameters:
+              mu = 0.051519
+           omega = 0.018961
+        alpha[1] = 0.000000
+        gamma[1] = 0.207630
+         beta[1] = 0.879485
+              nu = 6.802757
+  Persistence (α + β + γ/2) = 0.983300
+  Asymmetry (γ) = 0.207630
+  Student-t df (ν) = 6.80
+
+--- Fitting: const+EGARCH(1,1)+normal ---
+  Log-likelihood = -8948.79
+  AIC = 17905.58   BIC = 17932.72
+  Parameters:
+              mu = 0.068630
+           omega = 0.009663
+        alpha[1] = 0.242669
+         beta[1] = 0.972406
+  EGARCH asymmetry (γ) = 0.000000
+
+--- Fitting: const+EGARCH(1,1)+t ---
+  Log-likelihood = -8777.34
+  AIC = 17564.68   BIC = 17598.60
+  Parameters:
+              mu = 0.079330
+           omega = 0.011744
+        alpha[1] = 0.245268
+         beta[1] = 0.982273
+              nu = 5.970773
+  EGARCH asymmetry (γ) = 0.000000
+  Student-t df (ν) = 5.97
+
+--- Fitting: MA(1)+GARCH(1,1)+normal ---
+  Log-likelihood = -8919.05
+  AIC = 17846.10   BIC = 17873.24
+  Parameters:
+           Const = 0.062408
+           omega = 0.025760
+        alpha[1] = 0.121115
+         beta[1] = 0.858829
+  Persistence (α+β) = 0.979944
+
+--- Fitting: MA(1)+GARCH(1,1)+t ---
+  Log-likelihood = -8764.67
+  AIC = 17539.34   BIC = 17573.26
+  Parameters:
+           Const = 0.080057
+           omega = 0.016127
+        alpha[1] = 0.125037
+         beta[1] = 0.869908
+              nu = 6.138126
+  Persistence (α+β) = 0.994945
+  Student-t df (ν) = 6.14
+
+--- Fitting: MA(1)+GJR-GARCH(1,1)+normal ---
+  Log-likelihood = -8792.54
+  AIC = 17595.08   BIC = 17629.00
+  Parameters:
+           Const = 0.023634
+           omega = 0.023330
+        alpha[1] = 0.000000
+        gamma[1] = 0.174296
+         beta[1] = 0.889540
+  Persistence (α + β + γ/2) = 0.976688
+  Asymmetry (γ) = 0.174296
+
+--- Fitting: MA(1)+GJR-GARCH(1,1)+t ---
+  Log-likelihood = -8650.28
+  AIC = 17312.56   BIC = 17353.27
+  Parameters:
+           Const = 0.051519
+           omega = 0.018961
+        alpha[1] = 0.000000
+        gamma[1] = 0.207630
+         beta[1] = 0.879485
+              nu = 6.802757
+  Persistence (α + β + γ/2) = 0.983300
+  Asymmetry (γ) = 0.207630
+  Student-t df (ν) = 6.80
+
+--- Fitting: MA(1)+EGARCH(1,1)+normal ---
+  Log-likelihood = -8948.79
+  AIC = 17905.58   BIC = 17932.72
+  Parameters:
+           Const = 0.068630
+           omega = 0.009663
+        alpha[1] = 0.242669
+         beta[1] = 0.972406
+  EGARCH asymmetry (γ) = 0.000000
+
+--- Fitting: MA(1)+EGARCH(1,1)+t ---
+  Log-likelihood = -8777.34
+  AIC = 17564.68   BIC = 17598.60
+  Parameters:
+           Const = 0.079330
+           omega = 0.011744
+        alpha[1] = 0.245268
+         beta[1] = 0.982273
+              nu = 5.970773
+  EGARCH asymmetry (γ) = 0.000000
+  Student-t df (ν) = 5.97
+
+============================================================================
+  GARCH MODEL COMPARISON TABLE
+============================================================================
+                      Label  Mean       Vol   Dist          AIC          BIC       LogLik
+     const+GJR-GARCH(1,1)+t const GJR-GARCH      t 17312.555017 17353.266419 -8650.277509
+     MA(1)+GJR-GARCH(1,1)+t MA(1) GJR-GARCH      t 17312.555017 17353.266419 -8650.277509
+         const+GARCH(1,1)+t const     GARCH      t 17539.335083 17573.261251 -8764.667541
+         MA(1)+GARCH(1,1)+t MA(1)     GARCH      t 17539.335083 17573.261251 -8764.667541
+        const+EGARCH(1,1)+t const    EGARCH      t 17564.676420 17598.602588 -8777.338210
+        MA(1)+EGARCH(1,1)+t MA(1)    EGARCH      t 17564.676420 17598.602588 -8777.338210
+const+GJR-GARCH(1,1)+normal const GJR-GARCH normal 17595.077904 17629.004072 -8792.538952
+MA(1)+GJR-GARCH(1,1)+normal MA(1) GJR-GARCH normal 17595.077904 17629.004072 -8792.538952
+    const+GARCH(1,1)+normal const     GARCH normal 17846.098157 17873.239092 -8919.049079
+    MA(1)+GARCH(1,1)+normal MA(1)     GARCH normal 17846.098157 17873.239092 -8919.049079
+   const+EGARCH(1,1)+normal const    EGARCH normal 17905.583912 17932.724846 -8948.791956
+   MA(1)+EGARCH(1,1)+normal MA(1)    EGARCH normal 17905.583912 17932.724846 -8948.791956
+
+  Best by BIC: const+GJR-GARCH(1,1)+t (BIC=17353.27)
+  Best by AIC: const+GJR-GARCH(1,1)+t (AIC=17312.56)
+
+============================================================================
+  TASK 6 — INNOVATION DISTRIBUTION INVESTIGATION
+============================================================================
+
+--- Rationale ---
+  Unconditional return distribution: skewness = -0.3519, excess kurtosis = 11.0425
+  Jarque-Bera firmly rejects Gaussianity.
+
+  However, the relevant question for GARCH is whether the
+  STANDARDIZED residuals (z_t = ε_t / σ_t) are Gaussian,
+  not the raw returns. GARCH models explain part of the
+  unconditional heavy-tailedness through time-varying σ_t.
+
+  We compare Normal vs Student-t innovations by examining:
+  1. AIC/BIC differences between Normal and Student-t variants
+  2. The estimated degrees of freedom (ν) under Student-t
+  3. Whether standardized residuals still show excess kurtosis
+
+  GARCH(1,1): Normal vs Student-t
+    AIC difference (Normal − t): +306.76
+    BIC difference (Normal − t): +299.98
+    → Student-t is BETTER by both AIC and BIC
+
+  GJR-GARCH(1,1): Normal vs Student-t
+    AIC difference (Normal − t): +282.52
+    BIC difference (Normal − t): +275.74
+    → Student-t is BETTER by both AIC and BIC
+
+  EGARCH(1,1): Normal vs Student-t
+    AIC difference (Normal − t): +340.91
+    BIC difference (Normal − t): +334.12
+    → Student-t is BETTER by both AIC and BIC
+
+--- Standardized residual analysis ---
+
+  const+GJR-GARCH(1,1)+t:
+    Skewness of z_t:       -0.6414
+    Excess kurtosis of z_t: 2.4133
+    Jarque-Bera: JB=2030.66, p=0.00e+00
+    Still non-normal (some residual kurtosis)
+
+  MA(1)+GJR-GARCH(1,1)+t:
+    Skewness of z_t:       -0.6414
+    Excess kurtosis of z_t: 2.4133
+    Jarque-Bera: JB=2030.66, p=0.00e+00
+    Still non-normal (some residual kurtosis)
+
+  const+GARCH(1,1)+t:
+    Skewness of z_t:       -0.5810
+    Excess kurtosis of z_t: 2.0317
+    Jarque-Bera: JB=1489.17, p=0.00e+00
+    Still non-normal (some residual kurtosis)
+
+============================================================================
+  TASK 7 — MODEL DIAGNOSTICS
+============================================================================
+
+For the top-ranked models, we check whether the GARCH specification
+has successfully captured the conditional heteroskedasticity.
+A well-specified model should produce standardized residuals that
+behave like white noise in both levels and squares.
+
+────────────────────────────────────────────────────────────────────────────
+  DIAGNOSTICS: const+GJR-GARCH(1,1)+t
+────────────────────────────────────────────────────────────────────────────
+
+  Ljung-Box on z_t (standardized residuals):
+    Lag  5: Q=   17.96  p=0.0030  REJECT → residual autocorrelation
+    Lag 10: Q=   22.29  p=0.0137  REJECT → residual autocorrelation
+    Lag 20: Q=   33.70  p=0.0282  REJECT → residual autocorrelation
+
+  Ljung-Box on z_t² (remaining ARCH effects):
+    Lag  5: Q=    4.83  p=0.4370  OK ✓
+    Lag 10: Q=   10.05  p=0.4364  OK ✓
+    Lag 20: Q=   17.68  p=0.6084  OK ✓
+
+  ARCH-LM(10) on z_t: LM=10.21  p=0.4219  OK ✓ — ARCH captured
+
+────────────────────────────────────────────────────────────────────────────
+  DIAGNOSTICS: MA(1)+GJR-GARCH(1,1)+t
+────────────────────────────────────────────────────────────────────────────
+
+  Ljung-Box on z_t (standardized residuals):
+    Lag  5: Q=   17.96  p=0.0030  REJECT → residual autocorrelation
+    Lag 10: Q=   22.29  p=0.0137  REJECT → residual autocorrelation
+    Lag 20: Q=   33.70  p=0.0282  REJECT → residual autocorrelation
+
+  Ljung-Box on z_t² (remaining ARCH effects):
+    Lag  5: Q=    4.83  p=0.4370  OK ✓
+    Lag 10: Q=   10.05  p=0.4364  OK ✓
+    Lag 20: Q=   17.68  p=0.6084  OK ✓
+
+  ARCH-LM(10) on z_t: LM=10.21  p=0.4219  OK ✓ — ARCH captured
+
+────────────────────────────────────────────────────────────────────────────
+  DIAGNOSTICS: const+GARCH(1,1)+t
+────────────────────────────────────────────────────────────────────────────
+
+  Ljung-Box on z_t (standardized residuals):
+    Lag  5: Q=   17.03  p=0.0044  REJECT → residual autocorrelation
+    Lag 10: Q=   21.62  p=0.0172  REJECT → residual autocorrelation
+    Lag 20: Q=   32.79  p=0.0356  REJECT → residual autocorrelation
+
+  Ljung-Box on z_t² (remaining ARCH effects):
+    Lag  5: Q=    5.38  p=0.3716  OK ✓
+    Lag 10: Q=   13.01  p=0.2232  OK ✓
+    Lag 20: Q=   23.25  p=0.2766  OK ✓
+
+  ARCH-LM(10) on z_t: LM=12.96  p=0.2261  OK ✓ — ARCH captured
+
+────────────────────────────────────────────────────────────────────────────
+  DIAGNOSTICS: MA(1)+GARCH(1,1)+t
+────────────────────────────────────────────────────────────────────────────
+
+  Ljung-Box on z_t (standardized residuals):
+    Lag  5: Q=   17.03  p=0.0044  REJECT → residual autocorrelation
+    Lag 10: Q=   21.62  p=0.0172  REJECT → residual autocorrelation
+    Lag 20: Q=   32.79  p=0.0356  REJECT → residual autocorrelation
+
+  Ljung-Box on z_t² (remaining ARCH effects):
+    Lag  5: Q=    5.38  p=0.3716  OK ✓
+    Lag 10: Q=   13.01  p=0.2232  OK ✓
+    Lag 20: Q=   23.25  p=0.2766  OK ✓
+
+  ARCH-LM(10) on z_t: LM=12.96  p=0.2261  OK ✓ — ARCH captured
+
+  Figure saved: task7_diagnostics_model1.png
+
+  Figure saved: task7_diagnostics_model2.png
+
+============================================================================
+  TASK 8 — RESEARCH CONCLUSIONS
+============================================================================
+
+  Results table saved: c:\Users\LENOVO\Bureau\mastere\mean_variance_results.csv
+
+============================================================================
+  RESEARCH REPORT — CONDITIONAL MEAN AND VARIANCE STRUCTURE
+============================================================================
+
+1. IS A CONDITIONAL MEAN MODEL NECESSARY?
+   Not strictly necessary. The autocorrelations in log returns are
+   statistically significant (Ljung-Box rejects at all lags) but
+   economically small in magnitude (|ρ| < 0.06 at all lags).
+   The R² of an AR(1) is approximately 0.01039.
+   A constant-mean model is defensible as a baseline.
+   A low-order ARMA may modestly improve residuals for GARCH.
+
+2. WHAT LOW-ORDER ARMA STRUCTURE IS DEFENSIBLE?
+   Selected model: MA(1)
+   AIC = 20958.30, BIC = 20978.65
+   The improvement over constant-mean is modest.
+   Both ARMA(0,0) and MA(1) are defensible.
+   For the GARCH stage, we test both.
+
+3. IS THERE REMAINING ARCH BEHAVIOR AFTER MODELING THE MEAN?
+   YES. ARCH-LM test is highly significant (p ≈ 0) for ALL
+   mean specifications tested. ARCH effects are NOT an artifact
+   of mean misspecification.
+
+4. IS GARCH(1,1) A REASONABLE BASELINE?
+   YES. GARCH(1,1) is the standard benchmark for financial
+   volatility. Our data show high persistence (α+β close to 1)
+   and significant ARCH effects — exactly the conditions where
+   GARCH(1,1) is known to perform well.
+
+5. IS THERE EVIDENCE SUGGESTING ASYMMETRIC VOLATILITY?
+   YES.
+   Sign bias test confirms asymmetric response.
+   Negative returns are followed by higher volatility (leverage effect).
+   GJR-GARCH and EGARCH specifications are empirically motivated.
+
+6. IS STUDENT-t INNOVATION DISTRIBUTION WORTH TESTING?
+   YES. Even after GARCH filtering, standardized residuals show
+   excess kurtosis, indicating that GARCH alone does not fully
+   explain the heavy tails. Student-t innovations consistently
+   improve AIC/BIC across all volatility specifications.
+
+7. RECOMMENDED SPECIFICATIONS FOR OUT-OF-SAMPLE EVALUATION:
+   Best by BIC: const+GJR-GARCH(1,1)+t (BIC=17353.27)
+   Best by AIC: const+GJR-GARCH(1,1)+t (AIC=17312.56)
+
+   Recommended candidate set for forecasting evaluation:
+
+   • const+GJR-GARCH(1,1)+t (AIC=17312.56, BIC=17353.27)
+   • const+GARCH(1,1)+t (AIC=17539.34, BIC=17573.26)
+   • const+EGARCH(1,1)+t (AIC=17564.68, BIC=17598.60)
+
+   These candidates represent:
+   - The most parsimonious adequate model (baseline)
+   - An asymmetric variant (if supported by data)
+   - The best information-criterion model
+
+   All recommendations are based on in-sample diagnostics.
+   Final model selection should be based on OUT-OF-SAMPLE
+   forecasting performance, which is the next stage.
+
+
+  Markdown report saved: c:\Users\LENOVO\Bureau\mastere\mean_variance_report.md

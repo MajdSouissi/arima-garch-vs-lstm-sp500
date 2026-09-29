@@ -1,0 +1,87 @@
+Category,Model,Metric,Value,Note
+Mean model,"ARMA(0,0)",AIC,21025.40,
+Mean model,"ARMA(0,0)",BIC,21038.97,
+Mean model,"ARMA(0,0)",ARCH-LM(10) p,0.00e+00,ARCH effects present
+Mean model,AR(1),AIC,20959.13,
+Mean model,AR(1),BIC,20979.49,
+Mean model,AR(1),ARCH-LM(10) p,0.00e+00,ARCH effects present
+Mean model,MA(1),AIC,20958.30,
+Mean model,MA(1),BIC,20978.65,
+Mean model,MA(1),ARCH-LM(10) p,0.00e+00,ARCH effects present
+Mean model,"ARMA(1,1)",AIC,20960.29,
+Mean model,"ARMA(1,1)",BIC,20987.43,
+Mean model,"ARMA(1,1)",ARCH-LM(10) p,0.00e+00,ARCH effects present
+Mean model,AR(2),AIC,20960.24,
+Mean model,AR(2),BIC,20987.38,
+Mean model,AR(2),ARCH-LM(10) p,0.00e+00,ARCH effects present
+Mean model,"ARMA(2,1)",AIC,20957.54,
+Mean model,"ARMA(2,1)",BIC,20991.47,
+Mean model,"ARMA(2,1)",ARCH-LM(10) p,0.00e+00,ARCH effects present
+ARCH in residuals,MA(1),ARCH-LM(lag=1),3.76e-106,
+ARCH in residuals,MA(1),ARCH-LM(lag=5),0.00e+00,
+ARCH in residuals,MA(1),ARCH-LM(lag=10),0.00e+00,
+ARCH in residuals,MA(1),ARCH-LM(lag=20),0.00e+00,
+Asymmetry,Sign bias test,F-stat,178.24,p=0.0000 → asymmetry confirmed
+GARCH,"const+GARCH(1,1)+normal",Persistence,0.979944,
+GARCH,"const+GARCH(1,1)+normal",AIC,17846.10,
+GARCH,"const+GARCH(1,1)+normal",BIC,17873.24,
+GARCH,"const+GARCH(1,1)+t",Persistence,0.994945,
+GARCH,"const+GARCH(1,1)+t",Student-t df,6.14,
+GARCH,"const+GARCH(1,1)+t",AIC,17539.34,
+GARCH,"const+GARCH(1,1)+t",BIC,17573.26,
+GARCH,"const+GJR-GARCH(1,1)+normal",Persistence,0.976688,
+GARCH,"const+GJR-GARCH(1,1)+normal",Asymmetry (γ),0.174296,
+GARCH,"const+GJR-GARCH(1,1)+normal",AIC,17595.08,
+GARCH,"const+GJR-GARCH(1,1)+normal",BIC,17629.00,
+GARCH,"const+GJR-GARCH(1,1)+t",Persistence,0.983300,
+GARCH,"const+GJR-GARCH(1,1)+t",Asymmetry (γ),0.207630,
+GARCH,"const+GJR-GARCH(1,1)+t",Student-t df,6.80,
+GARCH,"const+GJR-GARCH(1,1)+t",AIC,17312.56,
+GARCH,"const+GJR-GARCH(1,1)+t",BIC,17353.27,
+GARCH,"const+EGARCH(1,1)+normal",EGARCH asymmetry (γ),0.000000,
+GARCH,"const+EGARCH(1,1)+normal",AIC,17905.58,
+GARCH,"const+EGARCH(1,1)+normal",BIC,17932.72,
+GARCH,"const+EGARCH(1,1)+t",EGARCH asymmetry (γ),0.000000,
+GARCH,"const+EGARCH(1,1)+t",Student-t df,5.97,
+GARCH,"const+EGARCH(1,1)+t",AIC,17564.68,
+GARCH,"const+EGARCH(1,1)+t",BIC,17598.60,
+GARCH,"MA(1)+GARCH(1,1)+normal",Persistence,0.979944,
+GARCH,"MA(1)+GARCH(1,1)+normal",AIC,17846.10,
+GARCH,"MA(1)+GARCH(1,1)+normal",BIC,17873.24,
+GARCH,"MA(1)+GARCH(1,1)+t",Persistence,0.994945,
+GARCH,"MA(1)+GARCH(1,1)+t",Student-t df,6.14,
+GARCH,"MA(1)+GARCH(1,1)+t",AIC,17539.34,
+GARCH,"MA(1)+GARCH(1,1)+t",BIC,17573.26,
+GARCH,"MA(1)+GJR-GARCH(1,1)+normal",Persistence,0.976688,
+GARCH,"MA(1)+GJR-GARCH(1,1)+normal",Asymmetry (γ),0.174296,
+GARCH,"MA(1)+GJR-GARCH(1,1)+normal",AIC,17595.08,
+GARCH,"MA(1)+GJR-GARCH(1,1)+normal",BIC,17629.00,
+GARCH,"MA(1)+GJR-GARCH(1,1)+t",Persistence,0.983300,
+GARCH,"MA(1)+GJR-GARCH(1,1)+t",Asymmetry (γ),0.207630,
+GARCH,"MA(1)+GJR-GARCH(1,1)+t",Student-t df,6.80,
+GARCH,"MA(1)+GJR-GARCH(1,1)+t",AIC,17312.56,
+GARCH,"MA(1)+GJR-GARCH(1,1)+t",BIC,17353.27,
+GARCH,"MA(1)+EGARCH(1,1)+normal",EGARCH asymmetry (γ),0.000000,
+GARCH,"MA(1)+EGARCH(1,1)+normal",AIC,17905.58,
+GARCH,"MA(1)+EGARCH(1,1)+normal",BIC,17932.72,
+GARCH,"MA(1)+EGARCH(1,1)+t",EGARCH asymmetry (γ),0.000000,
+GARCH,"MA(1)+EGARCH(1,1)+t",Student-t df,5.97,
+GARCH,"MA(1)+EGARCH(1,1)+t",AIC,17564.68,
+GARCH,"MA(1)+EGARCH(1,1)+t",BIC,17598.60,
+Std residuals,"const+GJR-GARCH(1,1)+t",Skewness(z_t),-0.6414,
+Std residuals,"const+GJR-GARCH(1,1)+t",Kurtosis(z_t),2.4133,
+Std residuals,"const+GJR-GARCH(1,1)+t",JB p-value,0.00e+00,
+Std residuals,"MA(1)+GJR-GARCH(1,1)+t",Skewness(z_t),-0.6414,
+Std residuals,"MA(1)+GJR-GARCH(1,1)+t",Kurtosis(z_t),2.4133,
+Std residuals,"MA(1)+GJR-GARCH(1,1)+t",JB p-value,0.00e+00,
+Std residuals,"const+GARCH(1,1)+t",Skewness(z_t),-0.5810,
+Std residuals,"const+GARCH(1,1)+t",Kurtosis(z_t),2.0317,
+Std residuals,"const+GARCH(1,1)+t",JB p-value,0.00e+00,
+Diagnostics,"const+GJR-GARCH(1,1)+t","LB(z²,20) p",0.6084,ARCH captured
+Diagnostics,"const+GJR-GARCH(1,1)+t",ARCH-LM(10) p,0.4219,ARCH captured
+Diagnostics,"MA(1)+GJR-GARCH(1,1)+t","LB(z²,20) p",0.6084,ARCH captured
+Diagnostics,"MA(1)+GJR-GARCH(1,1)+t",ARCH-LM(10) p,0.4219,ARCH captured
+Diagnostics,"const+GARCH(1,1)+t","LB(z²,20) p",0.2766,ARCH captured
+Diagnostics,"const+GARCH(1,1)+t",ARCH-LM(10) p,0.2261,ARCH captured
+Diagnostics,"MA(1)+GARCH(1,1)+t","LB(z²,20) p",0.2766,ARCH captured
+Diagnostics,"MA(1)+GARCH(1,1)+t",ARCH-LM(10) p,0.2261,ARCH captured
